@@ -1,60 +1,107 @@
-# SyncMesh — Real-Time Inventory Sync for Shopify
+<div align="center">
 
-SyncMesh is a Shopify embedded app that prevents **overselling** during flash sales and high-concurrency events by synchronizing inventory across multiple Shopify stores sharing the same warehouse in real time.
+# ⚡ SyncMesh
 
-## The Problem
+### Real-Time Inventory Sync for Shopify — Never Oversell Again
 
-Running multiple Shopify stores with a shared physical warehouse? Each store tracks inventory independently. During a flash sale or limited drop, multiple stores can sell the same last unit before any sync catches up. Result: cancelled orders, angry customers, and lost revenue.
+[![Go](https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat&logo=go)](https://go.dev)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react)](https://react.dev)
+[![Shopify](https://img.shields.io/badge/Shopify-Embedded_App-96BF48?style=flat&logo=shopify)](https://shopify.dev)
+[![License](https://img.shields.io/badge/License-Proprietary-red?style=flat)](LICENSE)
 
-## How SyncMesh Solves It
+</div>
 
-- **Event-driven real-time sync** — not polling-based. When one store sells, all other stores reflect the change in milliseconds.
-- **Idempotent sync ledger** — every inventory change is tracked and auditable, preventing double-counting or phantom inventory.
-- **Pool SKU system** — link products across stores to a shared Pool SKU, ensuring consistent inventory everywhere.
-- **Multi-location support** — manage inventory per warehouse location (Pro/Max plans).
-- **Auto-Link by SKU** — automatically scan and link products across stores by matching SKUs.
-- **Alert system** — configurable low-stock, stockout, and sync-failure alerts via in-app, email, or webhook.
+---
 
-## Tech Stack
+## 🚀 We're Looking for Beta Testers!
 
-- **Backend:** Go, PostgreSQL, Redis Streams, Shopify GraphQL API
-- **Frontend:** React, TypeScript, Shopify Polaris, Vite
-- **Infrastructure:** Google Cloud Run, Cloud SQL, Grafana Cloud, Sentry
+**SyncMesh is now accepting beta users — get free Pro access ($49.99/mo value) in exchange for feedback.**
 
-## Screenshots
+If you run multiple Shopify stores with a shared warehouse, we want to talk to you. Beta testers get lifetime Pro-tier access with no charges. No credit card required.
 
-![Dashboard](docs/screenshots/1.png)
-![Inventory Workbench](docs/screenshots/2.png)
-![Sync Activity](docs/screenshots/3.png)
-![Alerts](docs/screenshots/4.png)
+**[→ Join the Beta](https://www.r2remote.dev)** • **[→ Read the Docs](docs/user-manual.md)**
 
-## Documentation
+---
 
-- [User Manual](docs/user-manual.md) — Full usage guide covering installation, dashboard, inventory workbench, multi-store pairing, alerts, and FAQ.
+## 🎯 The Problem You Know Too Well
 
-## Plans & Pricing
+You're running a flash sale. Two Shopify stores, one warehouse, limited stock. The last unit sells on Store A at 12:00:03. Store B still shows it as available. At 12:00:07, a second customer buys it on Store B. Now you've just sold one physical item twice.
 
-| Tier | Price | Stores | SKUs | Retention |
-|---|---|---|---|---|
-| Starter | $19.99/mo | 2 | 1,000 | 7 days |
-| Pro | $49.99/mo | 5 | 10,000 | 30 days |
-| Max | $129.99/mo | Unlimited | Unlimited | 365 days |
+**Result:** cancelled orders, angry customers, bad reviews, refund fees, and a customer service nightmare.
 
-All plans include a 14-day free trial. No credit card required to start.
+Most sync tools poll every 5–15 minutes. In a flash sale, 15 minutes might as well be forever.
 
-## Install
+## ⚡ How SyncMesh Is Different
 
-SyncMesh is available on the Shopify App Store (coming soon).
+Traditional inventory sync tools **poll** on a timer. SyncMesh uses **event-driven real-time sync** via Redis Streams — when a sale happens in one store, inventory updates propagate to all connected stores in **milliseconds**, not minutes.
 
-For early access or beta inquiries, contact us or visit [r2remote.dev](https://www.r2remote.dev).
+| | Traditional Sync | SyncMesh |
+|---|---|---|
+| Mechanism | Polling (5–15 min) | Event-driven (sub-second) |
+| Overselling during spikes | Inevitable | Prevented |
+| Multi-location | Often broken | First-class support |
+| Audit trail | Limited | Full idempotent ledger |
+| Architecture | Single-threaded | Redis Streams + worker pool |
 
-## Privacy & Security
+## ✨ Features
 
-- All Shopify access tokens are encrypted at rest (AES-256-GCM)
-- Data stored on Google Cloud Platform (us-central1)
+- **⚡ Event-Driven Real-Time Sync** — Inventory changes propagate in milliseconds via Redis Streams
+- **🔗 Pool SKU System** — Link products across stores to a shared pool identifier
+- **🤖 Auto-Link by SKU** — One-click scan to automatically match and link products across stores
+- **📊 Full Audit Ledger** — Every inventory change is tracked with idempotency guarantees
+- **📍 Multi-Location** — Per-warehouse inventory tracking with location-level sync (Pro/Max)
+- **🔔 Smart Alerts** — Low stock, stockout, and sync-failure alerts via in-app, email, or webhook
+- **👥 Multi-Store Pairing** — 6-character pairing codes to connect stores in seconds
+- **🔐 Encrypted at Rest** — All Shopify access tokens stored with AES-256-GCM
+
+## 📸 Screenshots
+
+<div align="center">
+  <img src="docs/screenshots/1.png" width="45%" alt="Dashboard with stats and connected stores">&nbsp;
+  <img src="docs/screenshots/2.png" width="45%" alt="Inventory Workbench with product table">
+  <img src="docs/screenshots/3.png" width="45%" alt="Sync Activity showing real-time status">&nbsp;
+  <img src="docs/screenshots/4.png" width="45%" alt="Alert rules and configuration">
+</div>
+
+## 💰 Plans & Pricing
+
+| | Starter | Pro | Max |
+|---|---|---|---|
+| **Price** | $19.99/mo | $49.99/mo | $129.99/mo |
+| **Stores** | 2 | 5 | Unlimited |
+| **SKUs** | 1,000 | 10,000 | Unlimited |
+| **Locations** | 1 | Multiple | Multiple |
+| **Log Retention** | 7 days | 30 days | 365 days |
+| **Free Trial** | 14 days | 14 days | 14 days |
+
+## 🛠 Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Backend | Go, Redis Streams, pgx |
+| Frontend | React 18, TypeScript, Shopify Polaris, Vite |
+| Database | PostgreSQL (Cloud SQL) |
+| Queue | Redis (GCP Memorystore) |
+| Hosting | Google Cloud Run |
+| Monitoring | Grafana Cloud, Sentry, PostHog |
+
+## 📖 Documentation
+
+- **[User Manual](docs/user-manual.md)** — Full guide: installation, dashboard, inventory workbench, pairing, alerts, FAQ
+- **[Privacy Policy](https://www.r2remote.dev/privacy)** — Data handling, GDPR compliance
+
+## 🔒 Security
+
+- Shopify access tokens encrypted at rest (AES-256-GCM)
+- All data hosted on Google Cloud Platform (us-central1)
+- HMAC-verified webhooks with replay protection
+- JWT session tokens with per-request validation
 - GDPR compliant — automatic data deletion on app uninstall
-- See [privacy.html](https://www.r2remote.dev/privacy) for full privacy policy
 
-## License
+---
 
-Proprietary. All rights reserved.
+<div align="center">
+
+### 📦 [Install on Shopify](https://www.r2remote.dev) • 🧪 [Join Beta Program](https://www.r2remote.dev) • 📖 [Read the Docs](docs/user-manual.md)
+
+</div>
