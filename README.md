@@ -21,6 +21,13 @@ Running multiple Shopify stores with a shared physical warehouse? Each store tra
 - **Frontend:** React, TypeScript, Shopify Polaris, Vite
 - **Infrastructure:** Google Cloud Run, Cloud SQL, Grafana Cloud, Sentry
 
+## Screenshots
+
+![Dashboard](docs/screenshots/1.png)
+![Inventory Workbench](docs/screenshots/2.png)
+![Sync Activity](docs/screenshots/3.png)
+![Alerts](docs/screenshots/4.png)
+
 ## Documentation
 
 - [User Manual](docs/user-manual.md) — Full usage guide covering installation, dashboard, inventory workbench, multi-store pairing, alerts, and FAQ.
