@@ -1,246 +1,244 @@
-# SyncMesh 使用手册
+# SyncMesh User Manual
 
-SyncMesh 是一个 Shopify 库存同步网络，帮助多个 Shopify 店铺共享同一仓库时实时同步库存，防止超卖。
+SyncMesh is a Shopify inventory synchronization network that prevents overselling across multiple Shopify stores sharing the same warehouse through real-time inventory sync.
 
-## 目录
+## Table of Contents
 
-1. [快速开始](#快速开始)
-2. [控制台](#控制台)
-3. [库存工作台](#库存工作台)
-4. [多店铺配对](#多店铺配对)
-5. [告警系统](#告警系统)
-6. [常见问题](#常见问题)
+1. [Quick Start](#quick-start)
+2. [Dashboard](#dashboard)
+3. [Inventory Workbench](#inventory-workbench)
+4. [Multi-Store Pairing](#multi-store-pairing)
+5. [Alert System](#alert-system)
+6. [FAQ](#faq)
 
 ---
 
-## 快速开始
+## Quick Start
 
-### 安装应用
+### Install the App
 
-1. 点击管理员发送的安装链接：
+1. Click the install link provided by your administrator:
    ```
-   https://www.r2remote.dev/api/auth?shop=你的店铺域名.myshopify.com
+   https://www.r2remote.dev/api/auth?shop=your-store.myshopify.com
    ```
-2. 在 Shopify 授权页面点击 **"Install"**
-3. 进入 SyncMesh 欢迎页面
+2. Click **"Install"** on the Shopify authorization page
+3. You'll land on the SyncMesh welcome screen
 
-### 创建组织
+### Create an Organization
 
-首次安装后，你会看到两个选项：
+After installing for the first time, you'll see two options:
 
-- **"Create a New Organization"** — 创建新的库存网络（你是管理员）
-- **"Join Existing Organization"** — 通过配对码加入已有的网络
+- **"Create a New Organization"** — Create a new inventory network (you become the admin)
+- **"Join Existing Organization"** — Join an existing network using a pairing code
 
-点击 **"Create a New Organization"** 即可。Beta 用户会直接获得 Pro 计划权限，无需付费。
+Click **"Create a New Organization"**. Beta users receive Pro plan access immediately at no cost.
 
-### 邀请其他店铺加入
+### Invite Other Stores
 
-创建组织后，你需要邀请其他店铺加入才能开始同步：
+After creating an organization, invite other stores to start syncing:
 
-1. 在控制台点击 **"Invite Store"**
-2. 系统生成一个 6 位配对码（15 分钟有效）
-3. 将配对码发送给另一个店铺的管理员
-4. 对方安装应用后选择 **"Join Existing Organization"**，输入配对码即可
+1. Click **"Invite Store"** on the Dashboard
+2. A 6-character pairing code is generated (valid for 15 minutes)
+3. Send the code to the administrator of another store
+4. They install the app, choose **"Join Existing Organization"**, and enter the code
 
 ---
 
-## 控制台
+## Dashboard
 
-控制台是应用的首页，展示整体概况。
+The Dashboard is the home screen, showing an overview of your sync network.
 
-### 统计卡片
+### Stats Cards
 
-| 指标 | 说明 |
+| Metric | Description |
 |---|---|
-| Connected Stores | 已连接的店铺数 / 计划上限 |
-| Synced SKU Links | 已建立的 SKU 同步映射数 |
-| Unique Pool SKUs | 独立的库存池 SKU 数 |
+| Connected Stores | Number of connected stores / plan limit |
+| Synced SKU Links | Number of active SKU pool mappings |
+| Unique Pool SKUs | Number of distinct Pool SKUs in use |
 
-### 连接的店铺
+### Connected Stores Table
 
-表格显示所有已加入组织的店铺：
+Displays all stores in your organization:
 
-- **Store** — 店铺域名（标记 "Current" 表示当前店铺）
-- **Synced SKUs** — 该店铺已同步的 SKU 数量
-- **Status** — 连接状态
-- **Connected Since** — 连接时间
+- **Store** — Store domain ("Current" badge indicates the active store)
+- **Synced SKUs** — Number of SKUs synced by this store
+- **Status** — Connection status
+- **Connected Since** — Date the store joined
 
-### 新手引导
+### Setup Guide
 
-首次使用时，控制台右侧会显示引导卡片：
+New organizations see a checklist card on the right side:
 
-1. ✅ 开始试用（自动完成）
-2. ⬜ 连接至少两个店铺 → 点击 **"Invite Now"**
-3. ⬜ 映射你的第一个产品 → 点击 **"Configure"**（需先连接 2 个店铺）
+1. ✅ Start free trial (auto-completed)
+2. ⬜ Connect at least two stores → Click **"Invite Now"**
+3. ⬜ Map your first product → Click **"Configure"** (requires 2+ stores)
 
 ---
 
-## 库存工作台
+## Inventory Workbench
 
-库存工作台是 SyncMesh 的核心功能，通过顶部导航栏的 **"Inventory Workbench"** 按钮进入。
+The Inventory Workbench is the core of SyncMesh. Access it via the **"Inventory Workbench"** button in the top navigation.
 
-### 标准库存库（Standard Library）
+### Standard Library
 
-这是默认标签页，展示所有产品的库存同步状态。
+The default tab, showing sync status for all products.
 
-#### 工具栏
+#### Toolbar
 
-- **Location 筛选** — 按仓库位置筛选（Pro/Max 计划可用多位置）
-- **Status 筛选** — 全部产品 / 已关联池 / 未关联池
-- **搜索框** — 按产品标题或 SKU 搜索
-- **每页行数** — 10 / 20 / 50 / 100
+- **Location Filter** — Filter by warehouse location (multi-location available on Pro/Max)
+- **Status Filter** — All Products / In Pool / Not In Pool
+- **Search** — Search by product title or SKU
+- **Rows per Page** — 10 / 20 / 50 / 100
 
-#### 产品表格
+#### Product Table
 
-每个产品可展开查看所有变体：
+Each product expands to show all variants:
 
-| 列 | 说明 |
+| Column | Description |
 |---|---|
-| Product & SKU | 产品名称、变体标题、SKU |
-| Stock | 库存数量和状态（已追踪/未追踪/未入库） |
-| Network | 库存池关联状态（已关联/仅本地/缺少 SKU） |
-| Action | 操作按钮 |
+| Product & SKU | Product name, variant title, SKU |
+| Stock | Quantity and tracking status |
+| Network | Pool association status (linked / local only / missing SKU) |
+| Action | Action buttons |
 
-#### 关联库存池
+#### Link a Variant to Pool
 
-将变体关联到库存池 SKU，实现跨店铺同步：
+Link a variant to a Pool SKU for cross-store sync:
 
-1. 点击变体行的 **"Link to Pool"** 按钮
-2. 在弹窗中输入 Pool SKU（如 `GLOBAL-SKU-001`）
-3. 点击 **"Link to Pool"** 确认
+1. Click **"Link to Pool"** on the variant row
+2. Enter a Pool SKU in the modal (e.g., `GLOBAL-SKU-001`)
+3. Click **"Link to Pool"** to confirm
 
-关联后，所有使用相同 Pool SKU 的店铺会自动同步库存。
+Once linked, all stores using the same Pool SKU will automatically keep inventory in sync.
 
-#### 自动关联（Auto-Link）
+#### Auto-Link by SKU
 
-如果产品较多，可以使用自动关联功能：
+If you have many products, use the auto-link feature:
 
-1. 点击 **"Auto-Link by SKU"** 按钮
-2. 选择要扫描的仓库位置（Pro/Max 计划）
-3. 点击 **"Confirm Auto-Link"**
+1. Click **"Auto-Link by SKU"**
+2. Select the warehouse location to scan (Pro/Max plans)
+3. Click **"Confirm Auto-Link"**
 
-系统会自动扫描所有产品，按 SKU 匹配并建立关联。扫描过程中会显示进度条。
+The system scans all products, matches by SKU, and creates links automatically. A progress bar shows scan status. If inventory conflicts are detected (same SKU has different quantities across stores), the system pauses and asks you to resolve them manually.
 
-如果发现库存冲突（同一 SKU 在不同店铺的库存数量不一致），系统会暂停并要求你手动解决。
+### Sync Activity
 
-### 同步活动（Sync Activity）
+The second tab shows the latest sync status for each SKU.
 
-第二个标签页展示每个 SKU 的最新同步状态。
+#### Status Badges
 
-#### 状态徽章说明
-
-| 状态 | 含义 |
+| Status | Meaning |
 |---|---|
-| Auto-Sync（绿色） | 自动同步成功 |
-| Inventory Update（蓝色） | Shopify Webhook 触发的更新 |
-| Force Sync（黄色） | 手动强制同步 |
-| Conflict Resolve（紫色） | 冲突解决 |
-| Sync Failed（红色） | 同步失败 |
+| Auto-Sync (green) | Automatic sync succeeded |
+| Inventory Update (blue) | Triggered by Shopify webhook |
+| Force Sync (yellow) | Manual forced sync |
+| Conflict Resolve (purple) | Conflict resolution |
+| Sync Failed (red) | Synchronization failure |
 
-#### 查看历史
+#### View History
 
-点击某个 SKU 的 **"N events"** 按钮，可以查看该 SKU 的完整同步历史。
+Click the **"N events"** button on any SKU row to see its full sync history.
 
-#### 强制同步
+#### Force Sync
 
-如果某个 SKU 同步失败，点击行末的 **"Force Sync"** 按钮手动触发重试。
+If a SKU's sync has failed, click **"Force Sync"** at the end of the row to retry manually.
 
-### 告警（Alerts）
+### Alerts
 
-第三个标签页用于管理库存告警规则。
+The third tab manages inventory alert rules.
 
-#### 三种告警类型
+#### Three Alert Types
 
-1. **Low Stock（低库存）** — 库存降至阈值时触发
-2. **Stockout（缺货）** — 库存归零时触发
-3. **Sync Failure（同步失败）** — 跨店铺同步失败时触发
+1. **Low Stock** — Triggers when stock drops to or below a configured threshold
+2. **Stockout** — Triggers when a product reaches zero inventory
+3. **Sync Failure** — Triggers when cross-store synchronization fails
 
-#### 创建告警规则
+#### Create an Alert Rule
 
-1. 点击对应类型的 **"Add Rule"** 按钮
-2. 选择适用范围：所有 SKU（全局）或指定 SKU
-3. 设置阈值（仅低库存类型）
-4. 设置通知渠道：应用内通知 / Email / Webhook
-5. 设置冷却时间（避免重复告警）
-6. 点击 **"Create"** 保存
+1. Click **"Add Rule"** under the desired alert type
+2. Choose scope: all SKUs (global) or a specific SKU
+3. Set the threshold (Low Stock only)
+4. Choose notification channels: In-App / Email / Webhook
+5. Set cooldown (prevents repeated alerts)
+6. Click **"Create"** to save
 
-#### 查看告警事件
+#### View Alert Events
 
-"Recent Alert Events" 表格展示最近的告警记录，包括类型、严重程度、SKU、数量、消息和时间。
-
----
-
-## 多店铺配对
-
-### 邀请新店铺
-
-1. 在控制台点击 **"Invite Store"**
-2. 系统生成 6 位配对码
-3. 将配对码分享给对方
-4. 对方安装应用后输入配对码加入
-
-### 加入已有组织
-
-1. 安装应用后，在欢迎页面点击 **"Join Existing Organization"**
-2. 输入 6 位配对码
-3. 点击 **"Verify & Join"**
-
-### 断开连接
-
-如需将某个店铺从组织中移除：
-
-1. 在控制台点击 **"Disconnect Current Store"**
-2. 确认操作
-
-**注意：** 断开后，该店铺的所有 SKU 关联将被永久删除。如果该店铺是组织中最后一个成员，组织的订阅将自动取消。
+The "Recent Alert Events" table shows recent alerts with type, severity, SKU, quantity, message, and time.
 
 ---
 
-## 告警系统
+## Multi-Store Pairing
 
-### 配置通知渠道
+### Invite a New Store
 
-创建告警规则时，可以选择以下通知渠道：
+1. Click **"Invite Store"** on the Dashboard
+2. A 6-character pairing code is generated
+3. Share the code with the other store administrator
+4. They install the app and enter the code to join
 
-- **In-App** — 应用内通知（默认）
-- **Email** — 邮件通知（需填写收件人地址）
-- **Webhook** — HTTP 回调（需填写 URL）
+### Join an Existing Organization
 
-### 告警冷却时间
+1. After installing the app, click **"Join Existing Organization"** on the welcome screen
+2. Enter the 6-character pairing code
+3. Click **"Verify & Join"**
 
-为避免告警风暴，每条规则都有冷却时间（默认 30 分钟）。在冷却时间内，同一规则不会重复触发。
+### Disconnect a Store
+
+To remove a store from the organization:
+
+1. Click **"Disconnect Current Store"** on the Dashboard
+2. Confirm the action
+
+**Note:** Disconnecting permanently deletes all SKU links for that store. If it was the last store, the organization's subscription will be automatically cancelled.
 
 ---
 
-## 常见问题
+## Alert System
 
-### 库存没有同步怎么办？
+### Notification Channels
 
-1. 确认两个店铺都已加入同一组织
-2. 确认产品变体已关联到相同的 Pool SKU
-3. 检查 **Sync Activity** 标签页是否有同步失败记录
-4. 如有失败，点击 **"Force Sync"** 手动重试
+When creating alert rules, choose from:
 
-### 配对码过期了怎么办？
+- **In-App** — In-app notifications (default)
+- **Email** — Email notifications (recipient address required)
+- **Webhook** — HTTP callback (URL required)
 
-配对码有效期为 15 分钟。在控制台重新点击 **"Invite Store"** 生成新的配对码。
+### Alert Cooldown
 
-### 如何查看同步历史？
+Each rule has a cooldown period (default 30 minutes) to prevent alert storms. A rule will not re-trigger during its cooldown window.
 
-进入库存工作台 → **Sync Activity** 标签页 → 点击某个 SKU 的 **"N events"** 按钮。
+---
 
-### 什么是 Pool SKU？
+## FAQ
 
-Pool SKU 是跨店铺共享的库存标识符。例如，两个店铺的同一个产品都关联到 `GLOBAL-SKU-001`，那么当一个店铺卖出商品时，另一个店铺的库存会自动减少。
+### Why isn't my inventory syncing?
 
-### 自动关联（Auto-Link）会覆盖已有的关联吗？
+1. Verify both stores are in the same organization
+2. Verify the product variants are linked to the same Pool SKU
+3. Check the **Sync Activity** tab for failed sync events
+4. If failures exist, click **"Force Sync"** to retry manually
 
-不会。自动关联只会处理尚未关联的变体。已关联的变体不会被修改。
+### My pairing code expired. What do I do?
 
-### 如何解绑已关联的变体？
+Pairing codes are valid for 15 minutes. Click **"Invite Store"** on the Dashboard to generate a new one.
 
-在标准库存库中找到该变体，点击 **"Edit Link"** → 在弹窗中点击 **"Unlink from Pool"**。
+### How do I view sync history?
 
-### 库存冲突是什么？
+Go to Inventory Workbench → **Sync Activity** tab → click **"N events"** on any SKU.
 
-当同一个 Pool SKU 在不同店铺的库存数量不一致时，系统会检测到冲突。你需要选择使用哪个店铺的库存数值来解决冲突。
+### What is a Pool SKU?
+
+A Pool SKU is a shared inventory identifier across stores. For example, if two stores both link a product to `GLOBAL-SKU-001`, when one store sells a unit, the other store's inventory count is automatically reduced.
+
+### Will Auto-Link overwrite existing links?
+
+No. Auto-Link only processes unlinked variants. Already-linked variants are left untouched.
+
+### How do I unlink a variant?
+
+In the Standard Library tab, click **"Edit Link"** on the variant → click **"Unlink from Pool"** in the modal.
+
+### What is an inventory conflict?
+
+A conflict occurs when the same Pool SKU has different inventory quantities across stores. You must choose which store's quantity to use when resolving the conflict.
