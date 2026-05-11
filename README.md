@@ -9,31 +9,29 @@
 [![Shopify](https://img.shields.io/badge/Shopify-Embedded_App-96BF48?style=flat&logo=shopify)](https://shopify.dev)
 [![License](https://img.shields.io/badge/License-Proprietary-red?style=flat)](LICENSE)
 
+**[🌐 Full Landing Page & Interactive Demo →](https://apprenticekyle.github.io/syncmesh-public)**
+
 </div>
 
 ---
 
-## 🚀 We're Looking for Beta Testers!
+## 🚀 We're Looking for Beta Testers
 
-**SyncMesh is now accepting beta users — get free Pro access ($49.99/mo value) in exchange for feedback.**
+SyncMesh is accepting beta users — get **free Pro access ($49.99/mo value)** in exchange for feedback. No credit card required.
 
-If you run multiple Shopify stores with a shared warehouse, we want to talk to you. Beta testers get lifetime Pro-tier access with no charges. No credit card required.
-
-**[→ Join the Beta](https://www.r2remote.dev)** • **[→ Read the Docs](docs/user-manual.md)**
+**[→ Apply for Beta Access](https://github.com/ApprenticeKyle/syncmesh-public/issues/new?template=beta-application.yml)**
 
 ---
 
-## 🎯 The Problem You Know Too Well
+## 🎯 The Problem
 
-You're running a flash sale. Two Shopify stores, one warehouse, limited stock. The last unit sells on Store A at 12:00:03. Store B still shows it as available. At 12:00:07, a second customer buys it on Store B. Now you've just sold one physical item twice.
+Two Shopify stores, one warehouse, limited stock. A flash sale hits. Store A sells the last unit at 12:00:03. Store B still shows it in stock at 12:00:07 — a second customer buys. One item, two orders.
 
-**Result:** cancelled orders, angry customers, bad reviews, refund fees, and a customer service nightmare.
-
-Most sync tools poll every 5–15 minutes. In a flash sale, 15 minutes might as well be forever.
+Most sync tools **poll** every 5–15 minutes. In a flash sale, that might as well be forever.
 
 ## ⚡ How SyncMesh Is Different
 
-Traditional inventory sync tools **poll** on a timer. SyncMesh uses **event-driven real-time sync** via Redis Streams — when a sale happens in one store, inventory updates propagate to all connected stores in **milliseconds**, not minutes.
+SyncMesh uses **event-driven real-time sync** via Redis Streams. When a sale happens in one store, inventory updates propagate to all connected stores in **milliseconds**, not minutes.
 
 | | Traditional Sync | SyncMesh |
 |---|---|---|
@@ -41,27 +39,25 @@ Traditional inventory sync tools **poll** on a timer. SyncMesh uses **event-driv
 | Overselling during spikes | Inevitable | Prevented |
 | Multi-location | Often broken | First-class support |
 | Audit trail | Limited | Full idempotent ledger |
-| Architecture | Single-threaded | Redis Streams + worker pool |
 
 ## ✨ Features
 
 - **⚡ Event-Driven Real-Time Sync** — Inventory changes propagate in milliseconds via Redis Streams
 - **🔗 Pool SKU System** — Link products across stores to a shared pool identifier
 - **🤖 Auto-Link by SKU** — One-click scan to automatically match and link products across stores
-- **📊 Full Audit Ledger** — Every inventory change is tracked with idempotency guarantees
+- **📊 Full Audit Ledger** — Every inventory change tracked with idempotency guarantees
 - **📍 Multi-Location** — Per-warehouse inventory tracking with location-level sync (Pro/Max)
 - **🔔 Smart Alerts** — Low stock, stockout, and sync-failure alerts via in-app, email, or webhook
 - **👥 Multi-Store Pairing** — 6-character pairing codes to connect stores in seconds
-- **🔐 Encrypted at Rest** — All Shopify access tokens stored with AES-256-GCM
+- **🔐 Encrypted at Rest** — Shopify access tokens stored with AES-256-GCM
 
-## 📸 Screenshots
+## 🎮 Interactive Demo
 
-<div align="center">
-  <img src="docs/screenshots/1.png" width="45%" alt="Dashboard with stats and connected stores">&nbsp;
-  <img src="docs/screenshots/2.png" width="45%" alt="Inventory Workbench with product table">
-  <img src="docs/screenshots/3.png" width="45%" alt="Sync Activity showing real-time status">&nbsp;
-  <img src="docs/screenshots/4.png" width="45%" alt="Alert rules and configuration">
-</div>
+Try SyncMesh right now — no Shopify store required.
+
+**[→ Launch Interactive Demo](https://apprenticekyle.github.io/syncmesh-public/demo/index.html)**
+
+Walk through the Dashboard, browse the Inventory Workbench, link products to a Pool SKU, run Auto-Link, and configure alert rules — all with realistic mock data.
 
 ## 💰 Plans & Pricing
 
@@ -85,10 +81,10 @@ Traditional inventory sync tools **poll** on a timer. SyncMesh uses **event-driv
 | Hosting | Google Cloud Run |
 | Monitoring | Grafana Cloud, Sentry, PostHog |
 
-## 📖 Documentation
+## 📖 Docs
 
 - **[User Manual](docs/user-manual.md)** — Full guide: installation, dashboard, inventory workbench, pairing, alerts, FAQ
-- **[Privacy Policy](https://www.r2remote.dev/privacy)** — Data handling, GDPR compliance
+- **[Full Landing Page](https://apprenticekyle.github.io/syncmesh-public)** — Interactive demo, feature details, tech stack
 
 ## 🔒 Security
 
@@ -102,6 +98,8 @@ Traditional inventory sync tools **poll** on a timer. SyncMesh uses **event-driv
 
 <div align="center">
 
-### 📦 [Install on Shopify](https://www.r2remote.dev) • 🧪 [Join Beta Program](https://www.r2remote.dev) • 📖 [Read the Docs](docs/user-manual.md)
+**[🌐 Full Website](https://apprenticekyle.github.io/syncmesh-public)** • **[🎮 Interactive Demo](https://apprenticekyle.github.io/syncmesh-public/demo/index.html)** • **[🧪 Join Beta](https://github.com/ApprenticeKyle/syncmesh-public/issues/new?template=beta-application.yml)** • **[📖 Docs](docs/user-manual.md)**
+
+> **Note:** SyncMesh is currently in beta. The app requires a Shopify store to function. To experience the product without a store, use the [interactive demo](https://apprenticekyle.github.io/syncmesh-public/demo/index.html).
 
 </div>

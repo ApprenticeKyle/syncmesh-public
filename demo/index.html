@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SyncMesh — Interactive Demo</title>
+<link rel="stylesheet" href="https://unpkg.com/@shopify/polaris@13.9.5/build/esm/styles.css">
+<style>
+/* ── App Shell ── */
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--p-color-bg-app, #f1f1f1); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: var(--p-color-text, #202223); }
+.app-shell { display: flex; min-height: 100vh; }
+.sidebar { width: 240px; background: var(--p-color-bg, #1a1a2e); flex-shrink: 0; padding: 16px 0; display: flex; flex-direction: column; }
+.sidebar-logo { padding: 8px 16px 24px; font-size: 1.15rem; font-weight: 700; color: #fff; }
+.sidebar-logo span { color: #a29bfe; }
+.sidebar-section { padding: 8px 12px; font-size: 0.72rem; font-weight: 600; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 8px; }
+.sidebar-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin: 0 8px; border-radius: 6px; color: rgba(255,255,255,0.7); cursor: pointer; font-size: 0.88rem; font-weight: 500; transition: all .12s; border: none; background: none; width: calc(100% - 16px); text-align: left; }
+.sidebar-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+.sidebar-item.active { background: rgba(162,155,254,0.15); color: #a29bfe; }
+.sidebar-icon { font-size: 1.1rem; width: 20px; text-align: center; }
+.main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+/* Top bar */
+.topbar { background: var(--p-color-bg-surface, #fff); border-bottom: 1px solid var(--p-color-border-subdued, #e4e4e8); padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; }
+.topbar-search { display: flex; align-items: center; gap: 8px; background: var(--p-color-bg-subdued, #f1f1f1); padding: 6px 12px; border-radius: 6px; width: 300px; }
+.topbar-search input { border: none; background: transparent; outline: none; font-size: 0.85rem; width: 100%; color: var(--p-color-text, #202223); }
+.topbar-right { display: flex; align-items: center; gap: 16px; font-size: 0.85rem; }
+.topbar-store { color: var(--p-color-text-subdued, #6d7175); }
+.topbar-badge { background: rgba(0,127,95,0.1); color: var(--p-color-text-success, #007f5f); padding: 2px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 600; }
+
+/* Content */
+.content { padding: 0; flex: 1; overflow-y: auto; }
+
+/* Page header */
+.page-header { background: var(--p-color-bg-surface, #fff); border-bottom: 1px solid var(--p-color-border-subdued, #e4e4e8); padding: 16px 24px; }
+.page-breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: var(--p-color-text-subdued, #6d7175); margin-bottom: 8px; cursor: pointer; background: none; border: none; padding: 0; }
+.page-breadcrumb:hover { color: var(--p-color-text, #202223); }
+.page-title-row { display: flex; align-items: center; justify-content: space-between; }
+.page-title { font-size: 1.25rem; font-weight: 700; margin: 0; }
+.page-subtitle { font-size: 0.82rem; color: var(--p-color-text-subdued, #6d7175); margin-top: 4px; }
+.page-actions { display: flex; gap: 8px; align-items: center; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 15px; border-radius: var(--p-border-radius-2, 6px); font-size: 0.85rem; font-weight: 500; border: 1px solid transparent; cursor: pointer; transition: all .1s; font-family: inherit; text-decoration: none; white-space: nowrap; }
+.btn:disabled { opacity: .55; cursor: default; }
+.btn-pri { background: var(--p-color-bg-fill-brand, #2c6ecb); color: #fff; border-color: var(--p-color-bg-fill-brand, #2c6ecb); }
+.btn-pri:hover:not(:disabled) { background: var(--p-color-bg-fill-brand-hover, #1f5199); }
+.btn-sec { background: var(--p-color-bg-surface, #fff); color: var(--p-color-text, #202223); border-color: var(--p-color-border, #8c9196); box-shadow: 0 1px 0 rgba(0,0,0,0.05); }
+.btn-sec:hover:not(:disabled) { background: var(--p-color-bg-subdued, #f6f6f7); }
+.btn-ter { background: transparent; color: var(--p-color-text-interactive, #2c6ecb); border-color: transparent; padding: 4px 10px; }
+.btn-ter:hover:not(:disabled) { background: var(--p-color-bg-subdued-active, #ededef); }
+.btn-crit { background: transparent; color: var(--p-color-text-critical, #d72c0d); border-color: var(--p-color-border-critical, #d72c0d); }
+.btn-crit:hover:not(:disabled) { background: var(--p-color-bg-critical-subdued, #fbeae5); }
+.btn-plain { background: none; border: none; padding: 4px 8px; color: var(--p-color-text-interactive, #2c6ecb); cursor: pointer; font-size: 0.85rem; }
+.btn-plain:hover { text-decoration: underline; }
+.btn-slim { padding: 4px 12px; font-size: 0.8rem; }
+.btn-large { padding: 10px 20px; font-size: 0.92rem; }
+.btn-mono { font-family: monospace; letter-spacing: 0.04em; }
+
+/* Layout */
+.layout { display: flex; gap: 20px; padding: 20px 24px; align-items: flex-start; }
+.layout-main { flex: 1; min-width: 0; }
+.layout-side { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; gap: 16px; }
+
+/* Cards */
+.card { background: var(--p-color-bg-surface, #fff); border-radius: var(--p-border-radius-3, 8px); box-shadow: var(--p-shadow-100, 0 1px 3px rgba(0,0,0,0.08)); }
+.card-header { padding: 14px 20px; border-bottom: 1px solid var(--p-color-border-subdued, #e4e4e8); font-size: 0.92rem; font-weight: 600; display: flex; align-items: center; justify-content: space-between; }
+.card-body { padding: 16px 20px; }
+.card-no-pad { padding: 0; }
+
+/* Stats grid */
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+.stat-card { text-align: center; padding: 20px 16px; }
+.stat-val { font-size: 1.75rem; font-weight: 700; color: var(--p-color-text, #202223); line-height: 1.2; }
+.stat-lbl { font-size: 0.78rem; color: var(--p-color-text-subdued, #6d7175); margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 4px; }
+.stat-lbl-icon { display: inline-flex; cursor: help; color: var(--p-color-text-subdued, #8c9196); font-size: 0.8rem; }
+
+/* Banner */
+.banner { padding: 12px 16px; border-radius: var(--p-border-radius-2, 6px); font-size: 0.85rem; display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; }
+.banner-success { background: var(--p-color-bg-success-subdued, #eaf5ed); color: var(--p-color-text-success, #00583a); border: 1px solid var(--p-color-border-success-subdued, #a3cfb3); }
+.banner-info { background: var(--p-color-bg-info-subdued, #e6f0fc); color: var(--p-color-text-info, #004e8c); border: 1px solid var(--p-color-border-info-subdued, #a3c8f0); }
+.banner-warning { background: var(--p-color-bg-warning-subdued, #fff3d6); color: var(--p-color-text-warning, #7c6200); border: 1px solid var(--p-color-border-warning-subdued, #e6c84d); }
+.banner-critical { background: var(--p-color-bg-critical-subdued, #fbeae5); color: var(--p-color-text-critical, #8e1f0b); border: 1px solid var(--p-color-border-critical-subdued, #f1b7a8); }
+.banner-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+.banner-body { flex: 1; }
+.banner-body b { font-weight: 600; }
+
+/* Tabs */
+.tabs-bar { display: flex; border-bottom: 2px solid var(--p-color-border-subdued, #e4e4e8); padding: 0 3px; }
+.tab { padding: 12px 20px; font-size: 0.88rem; font-weight: 500; color: var(--p-color-text-subdued, #6d7175); border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all .12s; display: flex; align-items: center; gap: 8px; font-family: inherit; }
+.tab:hover { color: var(--p-color-text, #202223); }
+.tab.active { color: var(--p-color-text-interactive, #2c6ecb); border-bottom-color: var(--p-color-text-interactive, #2c6ecb); }
+.tab-badge { background: var(--p-color-bg-subdued, #e4e4e8); color: var(--p-color-text-subdued, #6d7175); padding: 1px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 600; min-width: 20px; text-align: center; }
+
+/* IndexTable */
+.idx-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.idx-table th { text-align: left; padding: 10px 12px; border-bottom: 2px solid var(--p-color-border-subdued, #e4e4e8); font-size: 0.75rem; font-weight: 600; color: var(--p-color-text-subdued, #6d7175); text-transform: uppercase; letter-spacing: 0.04em; }
+.idx-table td { padding: 12px; border-bottom: 1px solid var(--p-color-border-subdued, #e4e4e8); vertical-align: middle; }
+.idx-table tbody tr:hover { background: var(--p-color-bg-subdued, #f9f9fb); }
+.idx-table .row-critical td { background: var(--p-color-bg-critical-subdued, #fef3f0); border-bottom-color: var(--p-color-border-critical-subdued, #f8c8bd); }
+.idx-table .row-critical:hover td { background: var(--p-color-bg-critical-subdued-active, #fce4db); }
+
+/* Badges */
+.badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 10px; border-radius: 12px; font-size: 0.73rem; font-weight: 600; white-space: nowrap; }
+.badge-s { background: var(--p-color-bg-success-subdued, #eaf5ed); color: var(--p-color-text-success, #00583a); }
+.badge-i { background: var(--p-color-bg-info-subdued, #e6f0fc); color: var(--p-color-text-info, #004e8c); }
+.badge-w { background: var(--p-color-bg-warning-subdued, #fff3d6); color: var(--p-color-text-warning, #7c6200); }
+.badge-c { background: var(--p-color-bg-critical-subdued, #fbeae5); color: var(--p-color-text-critical, #8e1f0b); }
+.badge-n { background: var(--p-color-bg-subdued, #f0f0f2); color: var(--p-color-text-subdued, #6d7175); }
+.badge-at { background: var(--p-color-bg-attention-subdued, #fef5db); color: var(--p-color-text-attention, #8a6100); }
+.badge-sm { font-size: 0.7rem; padding: 1px 7px; }
+
+/* Filters */
+.filters-row { display: flex; gap: 10px; align-items: center; padding: 12px 20px; flex-wrap: wrap; }
+.filters-row-spacer { margin-left: auto; font-size: 0.82rem; color: var(--p-color-text-subdued, #6d7175); }
+
+/* Form controls */
+.field { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid var(--p-color-border, #8c9196); border-radius: var(--p-border-radius-2, 6px); background: var(--p-color-bg-surface, #fff); font-size: 0.85rem; cursor: pointer; }
+.field select { border: none; background: transparent; font-size: 0.85rem; color: var(--p-color-text, #202223); outline: none; cursor: pointer; font-family: inherit; }
+.field input { border: none; background: transparent; outline: none; font-size: 0.85rem; color: var(--p-color-text, #202223); font-family: inherit; }
+
+/* Expandable */
+.exp-row { cursor: pointer; }
+.exp-icon { display: inline-block; transition: transform .15s; font-size: 0.65rem; margin-right: 6px; }
+.exp-icon.open { transform: rotate(90deg); }
+.sub-row td { background: var(--p-color-bg-subdued, #fafafc); padding-left: 36px !important; font-size: 0.82rem; }
+
+/* Status dots */
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; flex-shrink: 0; }
+.dot-g { background: var(--p-color-icon-success, #007f5f); }
+.dot-b { background: var(--p-color-icon-info, #2c6ecb); }
+.dot-y { background: var(--p-color-icon-warning, #b98900); }
+.dot-r { background: var(--p-color-icon-critical, #d72c0d); }
+.dot-p { background: var(--p-color-icon-attention, #8a6100); }
+
+/* Setup guide */
+.setup-list { list-style: none; margin: 0; padding: 0; }
+.setup-li { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--p-color-border-subdued, #e4e4e8); }
+.setup-li:last-child { border-bottom: none; }
+.setup-check { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0; margin-top: 1px; }
+.setup-done { background: var(--p-color-icon-success, #007f5f); color: #fff; }
+.setup-pending { background: var(--p-color-bg-subdued, #e4e4e8); color: var(--p-color-text-subdued, #6d7175); }
+
+/* Modal */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; animation: fadeIn .15s; }
+@keyframes fadeIn { from { opacity: 0; } }
+.modal { background: var(--p-color-bg-surface, #fff); border-radius: var(--p-border-radius-3, 8px); box-shadow: 0 12px 40px rgba(0,0,0,0.25); max-width: 520px; width: 90%; max-height: 85vh; overflow-y: auto; animation: modalIn .15s; }
+@keyframes modalIn { from { transform: translateY(16px); opacity: 0; } }
+.modal-hdr { padding: 16px 20px; border-bottom: 1px solid var(--p-color-border-subdued, #e4e4e8); font-size: 0.95rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+.modal-body { padding: 16px 20px; }
+.modal-sec { padding: 12px 0; }
+.modal-sec + .modal-sec { border-top: 1px solid var(--p-color-border-subdued, #e4e4e8); }
+.modal-ftr { padding: 12px 20px; border-top: 1px solid var(--p-color-border-subdued, #e4e4e8); display: flex; justify-content: flex-end; gap: 10px; }
+.modal-close { background: none; border: none; cursor: pointer; font-size: 1.1rem; color: var(--p-color-text-subdued, #6d7175); padding: 4px; border-radius: 4px; }
+.modal-close:hover { background: var(--p-color-bg-subdued, #f6f6f7); }
+
+/* Form */
+.form-grp { margin-bottom: 14px; }
+.form-lbl { display: block; font-size: 0.82rem; font-weight: 500; margin-bottom: 5px; color: var(--p-color-text, #202223); }
+.form-inp { width: 100%; padding: 8px 12px; border: 1px solid var(--p-color-border, #8c9196); border-radius: var(--p-border-radius-2, 6px); font-size: 0.88rem; font-family: inherit; outline: none; }
+.form-inp:focus { border-color: var(--p-color-border-interactive, #2c6ecb); box-shadow: 0 0 0 2px rgba(44,110,203,0.2); }
+.form-sel { width: 100%; padding: 8px 12px; border: 1px solid var(--p-color-border, #8c9196); border-radius: var(--p-border-radius-2, 6px); font-size: 0.88rem; background: #fff; font-family: inherit; outline: none; }
+.form-hint { font-size: 0.78rem; color: var(--p-color-text-subdued, #6d7175); margin-top: 4px; }
+
+/* Progress */
+.progress { height: 6px; background: var(--p-color-bg-subdued, #e4e4e8); border-radius: 3px; overflow: hidden; margin: 16px 0; }
+.progress-fill { height: 100%; background: var(--p-color-bg-fill-brand, #2c6ecb); border-radius: 3px; transition: width .3s; }
+
+/* Toast */
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1100; padding: 12px 20px; border-radius: 8px; font-size: 0.85rem; font-weight: 500; box-shadow: 0 6px 24px rgba(0,0,0,0.18); animation: modalIn .2s; }
+.toast-ok { background: var(--p-color-bg-success-subdued, #eaf5ed); color: var(--p-color-text-success, #00583a); border: 1px solid var(--p-color-border-success-subdued, #a3cfb3); }
+.toast-err { background: var(--p-color-bg-critical-subdued, #fbeae5); color: var(--p-color-text-critical, #8e1f0b); border: 1px solid var(--p-color-border-critical-subdued, #f1b7a8); }
+
+/* Pairing code */
+.pair-code { font-size: 2.2rem; font-weight: 700; letter-spacing: 0.25em; text-align: center; padding: 24px; background: var(--p-color-bg-subdued, #f6f6f7); border-radius: 8px; margin: 12px 0; font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace; }
+
+/* Welcome */
+.welcome-wrap { max-width: 500px; margin: 60px auto; padding: 32px; }
+.welcome-card { text-align: center; padding: 36px 24px; border: 2px solid var(--p-color-border-subdued, #e4e4e8); border-radius: var(--p-border-radius-3, 8px); cursor: pointer; transition: all .15s; background: var(--p-color-bg-surface, #fff); }
+.welcome-card:hover { border-color: var(--p-color-border-interactive, #2c6ecb); box-shadow: 0 2px 12px rgba(44,110,203,0.1); }
+.welcome-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.welcome-icon { font-size: 2rem; margin-bottom: 12px; }
+
+/* Loading */
+.loading-wrap { display: flex; align-items: center; justify-content: center; padding: 80px; }
+.spinner { width: 32px; height: 32px; border: 3px solid var(--p-color-border-subdued, #e4e4e8); border-top-color: var(--p-color-bg-fill-brand, #2c6ecb); border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .layout { flex-direction: column; }
+  .layout-side { width: 100%; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .welcome-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="mock-data.js"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useCallback } = React;
+const e = React.createElement;
+
+// ── Helpers ──
+const BADGE_MAP = {
+  connected: ["Connected", "badge-s"], linked: ["In Pool", "badge-s"],
+  auto_sync: ["Auto-Sync", "badge-s"], inventory_update: ["Inv Update", "badge-i"],
+  force_sync: ["Force Sync", "badge-w"], conflict_resolve: ["Conflict Resolve", "badge-w"],
+  failed: ["Failed", "badge-c"], local_only: ["Local Only", "badge-n"],
+  missing_sku: ["Missing SKU", "badge-w"],
+};
+const sb = (s) => { const [l, c] = BADGE_MAP[s] || [s, "badge-n"]; return e("span", { className: `badge ${c}` }, l); };
+const dot = (c) => e("span", { className: `dot dot-${c}` });
+
+// ── Sidebar ──
+function Sidebar({ view, onNav }) {
+  return e("div", { className: "sidebar" },
+    e("div", { className: "sidebar-logo" }, "⚡ ", e("span", null, "Sync"), "Mesh"),
+    e("div", { className: "sidebar-section" }, "Navigation"),
+    e("button", { className: `sidebar-item ${view === "dashboard" ? "active" : ""}`, onClick: () => onNav("dashboard") },
+      e("span", { className: "sidebar-icon" }, "📊"), "Dashboard"),
+    e("button", { className: `sidebar-item ${view === "workbench" ? "active" : ""}`, onClick: () => onNav("workbench") },
+      e("span", { className: "sidebar-icon" }, "📦"), "Inventory Workbench"),
+    e("div", { className: "sidebar-section", style: { marginTop: "auto" } }, "Account"),
+    e("button", { className: "sidebar-item", onClick: () => onNav("onboarding") },
+      e("span", { className: "sidebar-icon" }, "🔌"), "Switch Organization"),
+  );
+}
+
+// ── TopBar ──
+function TopBar({ shop }) {
+  return e("div", { className: "topbar" },
+    e("div", { className: "topbar-search" },
+      e("span", null, "🔍"),
+      e("input", { placeholder: "Search products, SKUs...", readOnly: true })
+    ),
+    e("div", { className: "topbar-right" },
+      e("span", { className: "topbar-store" }, shop.domain),
+      e("span", { className: "topbar-badge" }, "BETA")
+    )
+  );
+}
+
+// ── PageHeader ──
+function PageHeader({ title, subtitle, breadcrumb, primaryAction, secondaryActions }) {
+  return e("div", { className: "page-header" },
+    breadcrumb && e("button", { className: "page-breadcrumb", onClick: breadcrumb.onClick }, "← ", breadcrumb.label),
+    e("div", { className: "page-title-row" },
+      e("div", null,
+        e("h1", { className: "page-title" }, title),
+        subtitle && e("p", { className: "page-subtitle" }, subtitle)
+      ),
+      e("div", { className: "page-actions" },
+        secondaryActions && secondaryActions.map((a, i) =>
+          e("button", { key: i, className: `btn ${a.cls || "btn-sec"}`, onClick: a.onClick, disabled: a.disabled }, a.icon, a.icon && " ", a.label)
+        ),
+        primaryAction && e("button", {
+          className: `btn ${primaryAction.cls || "btn-pri"}`,
+          onClick: primaryAction.onClick,
+          disabled: primaryAction.disabled
+        }, primaryAction.icon, primaryAction.icon && " ", primaryAction.label)
+      )
+    )
+  );
+}
+
+// ── Dashboard ──
+function Dashboard({ stats, shops, planLimit, onInvite, onNav }) {
+  return e("div", null,
+    e(PageHeader, {
+      title: "Dashboard",
+      subtitle: "Next Renewal: N/A (Beta — Free Pro Access)",
+      primaryAction: { label: "Inventory Workbench", icon: "📦", onClick: () => onNav("workbench") },
+      secondaryActions: [
+        { label: "Invite Store", icon: "＋", onClick: onInvite },
+        { label: "Refresh", icon: "↻", onClick: () => {} }
+      ]
+    }),
+    e("div", { className: "layout" },
+      e("div", { className: "layout-main" },
+        // Beta banner
+        e("div", { className: "banner banner-success" },
+          e("span", { className: "banner-icon" }, "✅"),
+          e("div", { className: "banner-body" },
+            e("b", null, "Beta Member"), " — You have free Pro-tier access ($49.99/mo value) with no charges. Thank you for helping us improve SyncMesh."
+          )
+        ),
+        // Stats
+        e("div", { className: "stats-grid" },
+          e("div", { className: "card stat-card" },
+            e("div", { className: "stat-val" }, stats.connectedStores, "/", planLimit),
+            e("div", { className: "stat-lbl" }, "Connected Stores", e("span", { className: "stat-lbl-icon", title: "Number of stores connected vs your plan limit" }, "ⓘ"))
+          ),
+          e("div", { className: "card stat-card" },
+            e("div", { className: "stat-val" }, stats.syncedSkuLinks),
+            e("div", { className: "stat-lbl" }, "Synced SKU Links", e("span", { className: "stat-lbl-icon", title: "Active SKU pool mappings" }, "ⓘ"))
+          ),
+          e("div", { className: "card stat-card" },
+            e("div", { className: "stat-val" }, stats.uniquePoolSkus),
+            e("div", { className: "stat-lbl" }, "Unique Pool SKUs", e("span", { className: "stat-lbl-icon", title: "Distinct Pool SKUs in use" }, "ⓘ"))
+          )
+        ),
+        // Connected Stores
+        e("div", { className: "card" },
+          e("div", { className: "card-header" }, "Connected Stores"),
+          e("table", { className: "idx-table" },
+            e("thead", null, e("tr", null,
+              e("th", null, "Store"), e("th", null, "Synced SKUs"), e("th", null, "Status"), e("th", null, "Connected Since")
+            )),
+            e("tbody", null, shops.map(s => e("tr", { key: s.id },
+              e("td", null, e("span", { style: { fontWeight: 500 } }, s.domain), s.isCurrent && e("span", { className: "badge badge-i badge-sm", style: { marginLeft: 8 } }, "Current")),
+              e("td", null, s.syncedSkus),
+              e("td", null, sb(s.status)),
+              e("td", null, s.joinedAt)
+            )))
+          )
+        )
+      ),
+      // Sidebar
+      e("div", { className: "layout-side" },
+        e("div", { className: "card" },
+          e("div", { className: "card-header" }, "Setup Guide"),
+          e("div", { className: "card-body" },
+            e("ul", { className: "setup-list" },
+              e("li", { className: "setup-li" },
+                e("span", { className: "setup-check setup-done" }, "✓"),
+                e("div", null, "Start free trial", e("br"), e("small", { style: { color: "var(--p-color-text-subdued)", fontSize: "0.8rem" } }, "BETA — Pro tier active"))
+              ),
+              e("li", { className: "setup-li" },
+                e("span", { className: "setup-check setup-done" }, "✓"),
+                e("div", null, "Connect at least two stores", e("br"), e("small", { style: { color: "var(--p-color-text-subdued)", fontSize: "0.8rem" } }, "3 stores connected"))
+              ),
+              e("li", { className: "setup-li" },
+                e("span", { className: "setup-check setup-done" }, "✓"),
+                e("div", null, "Map your first product", e("br"),
+                  e("button", { className: "btn btn-ter btn-slim", style: { marginTop: 4 }, onClick: () => onNav("workbench") }, "Go to Workbench →"))
+              )
+            )
+          )
+        )
+      )
+    )
+  );
+}
+
+// ── Standard Library ──
+function StandardLibrary({ products, onLink, onAutoLink }) {
+  const [exp, setExp] = useState({});
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const toggle = (id) => setExp(p => ({ ...p, [id]: !p[id] }));
+
+  const filtered = products.filter(p => {
+    if (search && !p.title.toLowerCase().includes(search.toLowerCase()) && !p.variants.some(v => v.sku && v.sku.toLowerCase().includes(search.toLowerCase()))) return false;
+    if (statusFilter !== "all" && !p.variants.some(v => v.status === statusFilter)) return false;
+    return true;
+  });
+
+  return e("div", { className: "card card-no-pad" },
+    e("div", { className: "filters-row" },
+      e("div", { className: "field" }, e("select", { value: "main", onChange: () => {} }, MOCK.locations.map(l => e("option", { key: l, value: l.toLowerCase().replace(/\s/g, "_") }, l)))),
+      e("div", { className: "field" }, e("select", { value: statusFilter, onChange: e => setStatusFilter(e.target.value) }, e("option", { value: "all" }, "All Products"), e("option", { value: "linked" }, "In Pool"), e("option", { value: "local_only" }, "Not In Pool"))),
+      e("div", { className: "field" }, e("input", { placeholder: "Search title or SKU...", value: search, onChange: e => setSearch(e.target.value) })),
+      e("span", { className: "filters-row-spacer" }, filtered.length, " products")
+    ),
+    e("table", { className: "idx-table" },
+      e("thead", null, e("tr", null, e("th", { style: { width: 30 } }), e("th", null, "Product & SKU"), e("th", null, "Stock"), e("th", null, "Network"), e("th", null, "Action"))),
+      e("tbody", null, filtered.map(p => [
+        e("tr", { key: p.id, className: "exp-row", onClick: () => toggle(p.id) },
+          e("td", null, e("span", { className: `exp-icon ${exp[p.id] ? 'open' : ''}` }, "▶")),
+          e("td", null, e("span", { style: { fontWeight: 600 } }, p.title), e("br"), e("span", { style: { fontSize: "0.78rem", color: "var(--p-color-text-subdued)" } }, p.variants.length, " variants")),
+          e("td", { style: { color: "var(--p-color-text-subdued)" } }, "—"),
+          e("td", { style: { color: "var(--p-color-text-subdued)" } }, "—"),
+          e("td")
+        ),
+        exp[p.id] && p.variants.map(v => e("tr", { key: v.id, className: "sub-row" },
+          e("td"),
+          e("td", null,
+            e("div", { style: { fontWeight: 500 } }, v.title),
+            e("span", { style: { fontFamily: "monospace", fontSize: "0.78rem", color: "var(--p-color-text-subdued)" } }, v.sku || "—")
+          ),
+          e("td", { style: { fontWeight: v.stock <= 5 ? 600 : 400, color: v.stock === 0 ? "var(--p-color-text-critical)" : "inherit" } },
+            v.stock, v.stock === 0 && e("span", { style: { color: "var(--p-color-text-critical)" } }, " (Out)")),
+          e("td", null, sb(v.status)),
+          e("td", null, v.status === "linked"
+            ? e("button", { className: "btn btn-ter btn-slim", onClick: () => onLink(v) }, "✎ Edit Link")
+            : v.status === "missing_sku"
+              ? e("span", { style: { fontSize: "0.82rem", color: "var(--p-color-text-subdued)" } }, "No SKU")
+              : e("button", { className: "btn btn-sec btn-slim", onClick: () => onLink(v) }, "🔗 Link to Pool")
+          )
+        ))
+      ]))
+    )
+  );
+}
+
+// ── Sync Activity ──
+function SyncActivity({ events, onForce }) {
+  const [expId, setExpId] = useState(null);
+  return e("div", { className: "card card-no-pad" },
+    e("table", { className: "idx-table" },
+      e("thead", null, e("tr", null,
+        e("th", null, "SKU"), e("th", null, "Location"), e("th", null, "Latest Status"), e("th", null, "Qty"), e("th", null, "Last Sync"), e("th", null, "History"), e("th", null, "Action")
+      )),
+      e("tbody", null, events.map(ev => [
+        e("tr", { key: ev.id, className: ev.status === "failed" ? "row-critical" : "" },
+          e("td", { style: { fontFamily: "monospace", fontSize: "0.82rem", fontWeight: 500 } }, ev.poolSku),
+          e("td", { style: { fontSize: "0.82rem" } }, "Main Warehouse"),
+          e("td", null, sb(ev.status)),
+          e("td", null, ev.fromStock, " → ", e("span", { style: { fontWeight: 500 } }, ev.toStock)),
+          e("td", { style: { fontSize: "0.82rem", color: "var(--p-color-text-subdued)" } }, ev.time),
+          e("td", null, e("button", { className: "btn btn-plain", onClick: () => setExpId(expId === ev.id ? null : ev.id) }, ev.id, " events")),
+          e("td", null, ev.status === "failed" && e("button", { className: "btn btn-crit btn-slim", onClick: () => onForce(ev) }, "Force Sync"))
+        ),
+        expId === ev.id && e("tr", { key: ev.id + "-d" },
+          e("td", { colSpan: 7, style: { background: "var(--p-color-bg-subdued)", padding: 16 } },
+            e("div", { style: { fontSize: "0.84rem" } },
+              e("strong", null, "Sync Detail — ", ev.poolSku),
+              e("div", { style: { marginTop: 8, color: "var(--p-color-text-subdued)" } },
+                "Action: ", ev.action.replace(/_/g, " "), e("br"),
+                "From: ", ev.fromStore, " (", ev.fromStock, " units)", e("br"),
+                "To: ", ev.toStore, " (", ev.toStock, " units)", e("br"),
+                ev.error && e("span", { style: { color: "var(--p-color-text-critical)" } }, "Error: ", ev.error, e("br")),
+                "Timestamp: ", ev.time
+              )
+            )
+          )
+        )
+      ]))
+    )
+  );
+}
+
+// ── Alerts Tab ──
+function AlertsTab({ rules, events, onCreate }) {
+  const TYPE_LABEL = { low_stock: "📉 Low Stock", stockout: "🚫 Stockout", sync_failure: "⚠️ Sync Failure" };
+  return e("div", null,
+    e("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginBottom: "20px" } },
+      ["low_stock", "stockout", "sync_failure"].map(t => e("div", { key: t, className: "card", style: { padding: 20 } },
+        e("h4", { style: { fontSize: "0.95rem", marginBottom: 8 } }, TYPE_LABEL[t]),
+        e("p", { style: { fontSize: "0.82rem", color: "var(--p-color-text-subdued)", marginBottom: 12 } }, t === "low_stock" ? "Alert when stock drops below threshold" : t === "stockout" ? "Alert when product reaches zero" : "Alert when cross-store sync fails"),
+        e("button", { className: "btn btn-sec btn-slim", onClick: () => onCreate(t) }, "+ Add Rule")
+      ))
+    ),
+    e("div", { className: "card", style: { marginBottom: 16 } },
+      e("div", { className: "card-header" }, "Alert Rules (", rules.length, ")"),
+      e("table", { className: "idx-table" },
+        e("thead", null, e("tr", null, e("th", null, "Type"), e("th", null, "Scope"), e("th", null, "Threshold"), e("th", null, "Channels"), e("th", null, "Cooldown"), e("th", null, "Status"))),
+        e("tbody", null, rules.map(r => e("tr", { key: r.id },
+          e("td", null, TYPE_LABEL[r.type]),
+          e("td", null, r.scopeName),
+          e("td", null, r.threshold || "—"),
+          e("td", null, r.channels.map(c => c.replace(/_/g, " ")).join(", ")),
+          e("td", null, r.cooldownMinutes, " min"),
+          e("td", null, e("span", { className: `badge ${r.enabled ? 'badge-s' : 'badge-n'}` }, r.enabled ? "Active" : "Paused"))
+        )))
+      )
+    ),
+    e("div", { className: "card" },
+      e("div", { className: "card-header" }, "Recent Alert Events"),
+      e("table", { className: "idx-table" },
+        e("thead", null, e("tr", null, e("th", null, "Type"), e("th", null, "Severity"), e("th", null, "SKU"), e("th", null, "Qty"), e("th", null, "Message"), e("th", null, "Channels"), e("th", null, "Time"))),
+        e("tbody", null, events.map(ev => e("tr", { key: ev.id },
+          e("td", null, TYPE_LABEL[ev.type] || ev.type),
+          e("td", null, e("span", { className: `badge ${ev.severity === "critical" ? "badge-c" : "badge-w"}` }, ev.severity)),
+          e("td", { style: { fontFamily: "monospace", fontSize: "0.8rem" } }, ev.sku),
+          e("td", { style: { fontWeight: ev.quantity === 0 ? 600 : 400, color: ev.quantity === 0 ? "var(--p-color-text-critical)" : "inherit" } }, ev.quantity),
+          e("td", { style: { color: "var(--p-color-text-subdued)", fontSize: "0.82rem" } }, ev.message),
+          e("td", { style: { color: "var(--p-color-text-subdued)", fontSize: "0.8rem" } }, "in-app"),
+          e("td", { style: { fontSize: "0.82rem", color: "var(--p-color-text-subdued)", whiteSpace: "nowrap" } }, ev.time)
+        )))
+      )
+    )
+  );
+}
+
+// ── Modals ──
+function LinkPoolModal({ variant, onClose, onOk }) {
+  const [sku, setSku] = useState(variant?.poolSku || "");
+  const [loading, setLoading] = useState(false);
+  const submit = () => { if (!sku.trim()) return; setLoading(true); setTimeout(() => { setLoading(false); onOk(variant?.poolSku ? "SKU link updated!" : "SKU linked to pool!"); }, 500); };
+  return e("div", { className: "modal-backdrop", onClick: onClose },
+    e("div", { className: "modal", onClick: e => e.stopPropagation() },
+      e("div", { className: "modal-hdr" }, variant?.poolSku ? "Edit Pool Link" : "Link Variant to Pool", e("button", { className: "modal-close", onClick: onClose }, "✕")),
+      e("div", { className: "modal-body" },
+        variant && e("div", { style: { marginBottom: 12, fontSize: "0.85rem", color: "var(--p-color-text-subdued)" } },
+          e("strong", null, variant.title), " — SKU: ", e("code", null, variant.sku), " — Stock: ", variant.stock),
+        e("div", { className: "form-grp" },
+          e("label", { className: "form-lbl" }, "Pool SKU"),
+          e("input", { className: "form-inp", value: sku, onChange: e => setSku(e.target.value), placeholder: "e.g. GLOBAL-TSH-001", autoFocus: true }),
+          e("div", { className: "form-hint" }, "All stores using the same Pool SKU will automatically stay in sync.")
+        ),
+        variant?.poolSku && e("button", { className: "btn btn-crit btn-slim", onClick: () => setSku(""), style: { marginBottom: 8 } }, "Unlink from Pool")
+      ),
+      e("div", { className: "modal-ftr" },
+        e("button", { className: "btn btn-sec", onClick: onClose }, "Cancel"),
+        e("button", { className: "btn btn-pri", onClick: submit, disabled: loading || !sku.trim() }, loading ? "Linking..." : variant?.poolSku ? "Update Link" : "Link to Pool")
+      )
+    )
+  );
+}
+
+function AutoLinkModal({ onClose, onOk }) {
+  const [stage, setStage] = useState("init");
+  const [pct, setPct] = useState(0);
+  const start = () => { setStage("run"); let v = 0; const t = setInterval(() => { v += Math.random() * 22 + 6; if (v >= 100) { v = 100; clearInterval(t); setPct(100); setTimeout(() => setStage("done"), 350); } setPct(Math.floor(v)); }, 350); };
+  return e("div", { className: "modal-backdrop", onClick: stage === "run" ? null : onClose },
+    e("div", { className: "modal", onClick: e => e.stopPropagation() },
+      e("div", { className: "modal-hdr" }, "Auto-Link by SKU", stage !== "run" && e("button", { className: "modal-close", onClick: onClose }, "✕")),
+      e("div", { className: "modal-body" },
+        stage === "init" && e("div", null,
+          e("div", { className: "form-grp" },
+            e("label", { className: "form-lbl" }, "Warehouse Location"),
+            e("select", { className: "form-sel", defaultValue: "main" }, MOCK.locations.map(l => e("option", { key: l }, l)))
+          ),
+          e("p", { style: { fontSize: "0.84rem", color: "var(--p-color-text-subdued)" } }, "The system will scan all products, match by SKU, and create links automatically. Already-linked variants will be skipped.")
+        ),
+        stage === "run" && e("div", null,
+          e("p", { style: { textAlign: "center", fontWeight: 500 } }, "Scanning products..."),
+          e("div", { className: "progress" }, e("div", { className: "progress-fill", style: { width: pct + "%" } })),
+          e("p", { style: { textAlign: "center", fontSize: "0.84rem", color: "var(--p-color-text-subdued)" } }, pct, "% complete")
+        ),
+        stage === "done" && e("div", { style: { textAlign: "center" } },
+          e("div", { style: { fontSize: "2.5rem", marginBottom: 10 } }, "✅"),
+          e("p", { style: { fontWeight: 600, marginBottom: 12 } }, "Scan Complete"),
+          e("div", { style: { background: "var(--p-color-bg-subdued)", borderRadius: 8, padding: 14, fontSize: "0.85rem", textAlign: "left" } },
+            e("strong", null, "Results:"), e("br"),
+            "✅ 15 new links created", e("br"),
+            "⏭️ 8 variants already linked (skipped)", e("br"),
+            "⚠️ 3 variants have conflicting inventory — manual review needed"
+          )
+        )
+      ),
+      e("div", { className: "modal-ftr" },
+        stage === "init" && e("span", null, e("button", { className: "btn btn-sec", onClick: onClose }, "Cancel"), e("button", { className: "btn btn-pri", style: { marginLeft: 10 }, onClick: start }, "Confirm Auto-Link")),
+        stage === "run" && e("button", { className: "btn btn-sec", disabled: true, style: { width: "100%" } }, "Scanning in progress..."),
+        stage === "done" && e("button", { className: "btn btn-pri", style: { width: "100%" }, onClick: () => onOk("Auto-link completed! 15 links created.") }, "Done")
+      )
+    )
+  );
+}
+
+function CreateAlertModal({ type, onClose, onOk }) {
+  const [scope, setScope] = useState("global");
+  const [threshold, setThreshold] = useState(type === "low_stock" ? 10 : "");
+  const [cooldown, setCooldown] = useState(30);
+  const [sku, setSku] = useState("");
+  const [channels, setChannels] = useState({ in_app: true, email: false, webhook: false });
+  const tn = { low_stock: "Low Stock", stockout: "Stockout", sync_failure: "Sync Failure" }[type];
+  return e("div", { className: "modal-backdrop", onClick: onClose },
+    e("div", { className: "modal", onClick: e => e.stopPropagation() },
+      e("div", { className: "modal-hdr" }, "Add ", tn, " Rule", e("button", { className: "modal-close", onClick: onClose }, "✕")),
+      e("div", { className: "modal-body" },
+        e("div", { className: "form-grp" },
+          e("label", { className: "form-lbl" }, "Scope"),
+          e("select", { className: "form-sel", value: scope, onChange: e => setScope(e.target.value) }, e("option", { value: "global" }, "All SKUs (global)"), e("option", { value: "sku" }, "Specific SKU"))
+        ),
+        scope === "sku" && e("div", { className: "form-grp" },
+          e("label", { className: "form-lbl" }, "SKU"), e("input", { className: "form-inp", value: sku, onChange: e => setSku(e.target.value), placeholder: "e.g. GLOBAL-TSH-001" })
+        ),
+        type === "low_stock" && e("div", { className: "form-grp" },
+          e("label", { className: "form-lbl" }, "Threshold"),
+          e("input", { className: "form-inp", type: "number", min: 1, value: threshold, onChange: e => setThreshold(e.target.value) }),
+          e("div", { className: "form-hint" }, "Alert triggers when stock drops to or below this number")
+        ),
+        e("div", { className: "form-grp" },
+          e("label", { className: "form-lbl" }, "Notification Channels"),
+          e("div", { style: { display: "flex", gap: 16 } },
+            ["in_app", "email", "webhook"].map(c => e("label", { key: c, style: { display: "flex", alignItems: "center", gap: 6, fontSize: "0.86rem", cursor: "pointer" } },
+              e("input", { type: "checkbox", checked: channels[c], onChange: e => setChannels({ ...channels, [c]: e.target.checked }) }),
+              c.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())
+            ))
+          )
+        ),
+        e("div", { className: "form-grp" },
+          e("label", { className: "form-lbl" }, "Cooldown (minutes)"),
+          e("input", { className: "form-inp", type: "number", min: 1, value: cooldown, onChange: e => setCooldown(e.target.value) }),
+          e("div", { className: "form-hint" }, "Prevents repeated alerts within this window")
+        )
+      ),
+      e("div", { className: "modal-ftr" },
+        e("button", { className: "btn btn-sec", onClick: onClose }, "Cancel"),
+        e("button", { className: "btn btn-pri", onClick: () => onOk(tn + " rule created!") }, "Create")
+      )
+    )
+  );
+}
+
+function InviteModal({ onClose }) {
+  const [code] = useState(() => Math.random().toString(36).substring(2, 8).toUpperCase());
+  const [copied, setCopied] = useState(false);
+  return e("div", { className: "modal-backdrop", onClick: onClose },
+    e("div", { className: "modal", onClick: e => e.stopPropagation() },
+      e("div", { className: "modal-hdr" }, "Invite a Store", e("button", { className: "modal-close", onClick: onClose }, "✕")),
+      e("div", { className: "modal-body" },
+        e("div", { className: "modal-sec" },
+          e("p", { style: { fontSize: "0.88rem", color: "var(--p-color-text-subdued)", marginBottom: 12 } }, "Share this pairing code with the administrator of another store."),
+          e("div", { className: "pair-code" }, code),
+          e("p", { style: { textAlign: "center", fontSize: "0.82rem", color: "var(--p-color-text-critical)" } }, "Expires in 14:58")
+        ),
+        e("div", { className: "modal-sec" },
+          e("p", { style: { fontSize: "0.84rem", fontWeight: 500, marginBottom: 6 } }, "How it works:"),
+          e("ol", { style: { paddingLeft: 18, fontSize: "0.84rem", color: "var(--p-color-text-subdued)" } },
+            e("li", null, "Share this code with the other store admin"),
+            e("li", null, "They install SyncMesh and choose \"Join Existing Organization\""),
+            e("li", null, "They enter this code to connect to your organization")
+          )
+        )
+      ),
+      e("div", { className: "modal-ftr" },
+        e("button", { className: "btn btn-sec", onClick: onClose }, "Close"),
+        e("button", { className: "btn btn-pri", onClick: () => { navigator.clipboard?.writeText(code); setCopied(true); } }, copied ? "✓ Copied!" : "📋 Copy Code")
+      )
+    )
+  );
+}
+
+// ── Onboarding ──
+function Onboarding({ onDone }) {
+  const [showJoin, setShowJoin] = useState(false);
+  const [code, setCode] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  if (showJoin) return e("div", { className: "welcome-wrap" },
+    e("div", { className: "card" },
+      e("div", { className: "card-header" }, "Join Existing Organization"),
+      e("div", { className: "card-body" },
+        e("div", { className: "form-grp" },
+          e("label", { className: "form-lbl" }, "Pairing Code"),
+          e("input", { className: "form-inp", value: code, onChange: e => setCode(e.target.value.toUpperCase()), placeholder: "Enter 6-character code", maxLength: 6, autoFocus: true, style: { fontFamily: "monospace", fontSize: "1.2rem", letterSpacing: "0.3em", textAlign: "center" } })
+        ),
+        e("button", { className: "btn btn-pri", style: { width: "100%", marginBottom: 8 }, onClick: () => { if (code.length < 6) return; setLoading(true); setTimeout(() => { setLoading(false); onDone("Joined organization! Welcome to SyncMesh."); }, 700); }, disabled: loading || code.length < 6 }, loading ? "Verifying..." : "Verify & Join"),
+        e("button", { className: "btn btn-plain", style: { width: "100%" }, onClick: () => setShowJoin(false) }, "← Back")
+      )
+    )
+  );
+
+  return e("div", { className: "welcome-wrap" },
+    e("div", { style: { textAlign: "center", marginBottom: 32 } },
+      e("h1", { style: { fontSize: "1.5rem", fontWeight: 700, marginBottom: 6 } }, "Welcome to SyncMesh"),
+      e("p", { style: { color: "var(--p-color-text-subdued)" } }, "Set up your inventory sync network in minutes")
+    ),
+    e("div", { className: "welcome-grid" },
+      e("div", { className: "welcome-card", onClick: () => { setLoading(true); setTimeout(() => { setLoading(false); onDone("Organization created! Welcome to SyncMesh."); }, 700); } },
+        e("div", { className: "welcome-icon" }, "🏗️"),
+        e("h3", { style: { fontSize: "1rem", marginBottom: 6 } }, "Create a New Organization"),
+        e("p", { style: { fontSize: "0.84rem", color: "var(--p-color-text-subdued)" } }, "Create a new inventory network. You'll be the admin."),
+        loading && e("p", { style: { marginTop: 10, color: "var(--p-color-text-interactive)" } }, "Creating...")
+      ),
+      e("div", { className: "welcome-card", onClick: () => setShowJoin(true) },
+        e("div", { className: "welcome-icon" }, "🔗"),
+        e("h3", { style: { fontSize: "1rem", marginBottom: 6 } }, "Join Existing Organization"),
+        e("p", { style: { fontSize: "0.84rem", color: "var(--p-color-text-subdued)" } }, "Connect to an existing network using a pairing code.")
+      )
+    )
+  );
+}
+
+// ── Workbench Container ──
+function Workbench({ products, syncEvents, alertRules, alertEvents, onLink, onForce, onCreateAlert }) {
+  const [tab, setTab] = useState(0);
+  return e("div", null,
+    e(PageHeader, {
+      title: "Inventory Workbench",
+      breadcrumb: { label: "Dashboard", onClick: () => {} },
+      secondaryActions: [
+        { label: "Auto-Link by SKU", icon: "🤖", onClick: () => onLink(null, true) },
+        { label: "Bundles Guide", icon: "❓", onClick: () => {} }
+      ]
+    }),
+    e("div", { className: "card card-no-pad" },
+      e("div", { className: "tabs-bar" },
+        e("button", { className: `tab ${tab === 0 ? "active" : ""}`, onClick: () => setTab(0) }, "Standard Library"),
+        e("button", { className: `tab ${tab === 1 ? "active" : ""}`, onClick: () => setTab(1) }, "Sync Activity"),
+        e("button", { className: `tab ${tab === 2 ? "active" : ""}`, onClick: () => setTab(2) }, "Alerts", e("span", { className: "tab-badge" }, String(alertEvents.filter(e => e.severity === "critical").length)))
+      ),
+      tab === 0 && e(StandardLibrary, { products, onLink, onAutoLink: () => onLink(null, true) }),
+      tab === 1 && e(SyncActivity, { events: syncEvents, onForce }),
+      tab === 2 && e(AlertsTab, { rules: alertRules, events: alertEvents, onCreate: onCreateAlert })
+    )
+  );
+}
+
+// ── Root ──
+function App() {
+  const [view, setView] = useState("onboarding");
+  const [toast, setToast] = useState(null);
+  const [modal, setModal] = useState(null);
+
+  const toastMsg = (msg, ok) => setToast({ msg, ok: ok !== false });
+  useEffect(() => { if (toast) { const t = setTimeout(() => setToast(null), 2500); return () => clearTimeout(t); } }, [toast]);
+
+  const closeModal = () => setModal(null);
+  const onOnboard = (msg) => { closeModal(); setView("dashboard"); toastMsg(msg); };
+
+  const showOnboarding = view === "onboarding";
+  return e("div", { className: "app-shell" },
+    !showOnboarding && e(Sidebar, { view, onNav: setView }),
+    e("div", { className: "main-area" },
+      !showOnboarding && e(TopBar, { shop: MOCK.currentShop }),
+      e("div", { className: "content" },
+        showOnboarding && e(Onboarding, { onDone: onOnboard }),
+        view === "dashboard" && e(Dashboard, {
+          stats: MOCK.stats, shops: MOCK.shops, planLimit: MOCK.stats.planLimit,
+          onInvite: () => setModal({ t: "invite" }), onNav: setView
+        }),
+        view === "workbench" && e(Workbench, {
+          products: MOCK.products, syncEvents: MOCK.syncEvents, alertRules: MOCK.alertRules, alertEvents: MOCK.alertEvents,
+          onLink: (v, isAuto) => setModal(isAuto ? { t: "autoLink" } : { t: "link", d: v }),
+          onForce: (ev) => toastMsg("Force sync triggered for " + ev.poolSku + "!"),
+          onCreateAlert: (type) => setModal({ t: "createAlert", d: type })
+        })
+      )
+    ),
+    modal?.t === "link" && e(LinkPoolModal, { variant: modal.d, onClose: closeModal, onOk: (m) => { closeModal(); toastMsg(m); } }),
+    modal?.t === "autoLink" && e(AutoLinkModal, { onClose: closeModal, onOk: (m) => { closeModal(); toastMsg(m); } }),
+    modal?.t === "createAlert" && e(CreateAlertModal, { type: modal.d, onClose: closeModal, onOk: (m) => { closeModal(); toastMsg(m); } }),
+    modal?.t === "invite" && e(InviteModal, { onClose: closeModal }),
+    toast && e("div", { className: `toast ${toast.ok ? "toast-ok" : "toast-err"}` }, toast.msg)
+  );
+}
+
+ReactDOM.render(e(App), document.getElementById("root"));
+</script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+name: Beta Program Application
+description: Apply to join the SyncMesh beta program and get free Pro access
+title: "[Beta Application] "
+labels: ["beta-application"]
+assignees: []
+body:
+  - type: input
+    id: shop_domain
+    attributes:
+      label: Shopify Store Domain
+      description: "Your .myshopify.com domain (e.g. my-store.myshopify.com)"
+      placeholder: "my-store.myshopify.com"
+    validations:
+      required: true
+  - type: input
+    id: store_count
+    attributes:
+      label: Number of Stores
+      description: How many Shopify stores do you want to connect?
+      placeholder: "2"
+    validations:
+      required: true
+  - type: input
+    id: sku_count
+    attributes:
+      label: Approximate Number of SKUs
+      description: How many products/SKUs do you need to sync across stores?
+      placeholder: "500"
+    validations:
+      required: true
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use Case
+      description: Describe how you plan to use SyncMesh. What problem are you solving?
+      placeholder: "We run two Shopify stores sharing a single warehouse..."
+    validations:
+      required: true
+  - type: input
+    id: referral
+    attributes:
+      label: How did you hear about SyncMesh?
+      placeholder: "GitHub, Google, referral, etc."
+    validations:
+      required: false
+  - type: checkboxes
+    id: agreement
+    attributes:
+      label: Agreement
+      options:
+        - label: I understand this is a beta product and I agree to provide feedback
+          required: true
