@@ -194,6 +194,47 @@ body { margin: 0; background: var(--p-color-bg-app, #f1f1f1); font-family: -appl
   .stats-grid { grid-template-columns: 1fr 1fr; }
   .welcome-grid { grid-template-columns: 1fr; }
 }
+
+	/* Product Header Row (colSpan merged cell) */
+	.prod-hdr-cell { background: var(--p-color-bg-surface-brand-selected, #f2f7fe); border-top: 1px solid var(--p-color-border-brand, #2c6ecb); }
+
+	/* Per-location blocks inside variant rows */
+	.loc-block { display: flex; align-items: center; min-height: 56px; gap: 8px; }
+	.loc-block + .loc-block { border-top: 1px dashed var(--p-color-border-subdued, #e4e4e8); }
+
+	/* Variant cell indent with left dashed border */
+	.var-indent { display: flex; align-items: center; min-height: 56px; padding-left: 32px; border-left: 2px dashed var(--p-color-border-subdued, #e1e3e5); margin-left: 16px; }
+
+	/* Location stack wrapper */
+	.loc-stack { display: flex; flex-direction: column; }
+
+	/* Popover menu */
+	.popover { position: absolute; top: 100%; left: 0; margin-top: 4px; background: var(--p-color-bg-surface, #fff); border-radius: var(--p-border-radius-2, 6px); box-shadow: 0 6px 24px rgba(0,0,0,0.15); z-index: 100; min-width: 180px; padding: 8px; border: 1px solid var(--p-color-border-subdued, #e4e4e8); }
+	.popover-item { display: block; width: 100%; padding: 8px 12px; border: none; background: none; text-align: left; font-size: 0.85rem; color: var(--p-color-text, #202223); cursor: pointer; border-radius: 4px; font-family: inherit; }
+	.popover-item:hover { background: var(--p-color-bg-subdued, #f6f6f7); }
+	.popover-item.active { background: var(--p-color-bg-info-subdued, #e6f0fc); color: var(--p-color-text-interactive, #2c6ecb); }
+
+	/* Tooltip */
+	.tooltip-wrap { position: relative; display: inline-flex; }
+	.tooltip-tip { display: none; position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: var(--p-color-bg, #1a1a1a); color: #fff; padding: 6px 10px; border-radius: 4px; font-size: 0.75rem; white-space: nowrap; z-index: 200; pointer-events: none; }
+	.tooltip-wrap:hover .tooltip-tip { display: block; }
+
+	/* Pagination */
+	.pagination { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; }
+	.pagination-btn { padding: 6px 12px; border: 1px solid var(--p-color-border, #8c9196); border-radius: var(--p-border-radius-2, 6px); background: var(--p-color-bg-surface, #fff); cursor: pointer; font-size: 0.85rem; color: var(--p-color-text, #202223); font-family: inherit; }
+	.pagination-btn:hover:not(:disabled) { background: var(--p-color-bg-subdued, #f6f6f7); }
+	.pagination-btn:disabled { opacity: 0.4; cursor: default; }
+
+	/* Onboarding center card */
+	.onboard-center { max-width: 600px; margin: 80px auto; padding: 32px; }
+	.onboard-img { text-align: center; margin-bottom: 1rem; }
+	.onboard-img img { width: 120px; filter: grayscale(0.2) opacity(0.8); }
+
+	/* Card description text */
+	.card-desc { font-size: 0.78rem; color: var(--p-color-text-subdued, #6d7175); margin-bottom: 12px; }
+
+	/* Popover anchor wrapper */
+	.popover-anchor { position: relative; display: inline-flex; }
 </style>
 </head>
 <body>
@@ -271,11 +312,14 @@ function PageHeader({ title, subtitle, breadcrumb, primaryAction, secondaryActio
 }
 
 // ── Dashboard ──
-function Dashboard({ stats, shops, planLimit, onInvite, onNav }) {
+function Dashboard({ stats, shops, planLimit, onInvite, onNav, alertEvents }) {
+  const recentAlerts = (alertEvents || []).slice(0, 5);
+  const allSetupDone = shops.length > 1 && stats.syncedSkuLinks > 0;
+  
   return e("div", null,
     e(PageHeader, {
       title: "Dashboard",
-      subtitle: "Next Renewal: N/A (Beta — Free Pro Access)",
+      titleMetadata: e("span", { className: "badge badge-s", style: { marginLeft: 8 } }, "Beta Access"),
       primaryAction: { label: "Inventory Workbench", icon: "📦", onClick: () => onNav("workbench") },
       secondaryActions: [
         { label: "Invite Store", icon: "＋", onClick: onInvite },
@@ -288,58 +332,99 @@ function Dashboard({ stats, shops, planLimit, onInvite, onNav }) {
         e("div", { className: "banner banner-success" },
           e("span", { className: "banner-icon" }, "✅"),
           e("div", { className: "banner-body" },
-            e("b", null, "Beta Member"), " — You have free Pro-tier access ($49.99/mo value) with no charges. Thank you for helping us improve SyncMesh."
+            e("b", null, "Beta member"), " — enjoy Pro plan access for free. We'd love to hear your feedback!"
           )
         ),
         // Stats
         e("div", { className: "stats-grid" },
-          e("div", { className: "card stat-card" },
-            e("div", { className: "stat-val" }, stats.connectedStores, "/", planLimit),
-            e("div", { className: "stat-lbl" }, "Connected Stores", e("span", { className: "stat-lbl-icon", title: "Number of stores connected vs your plan limit" }, "ⓘ"))
+          e("div", { className: "card", style: { padding: 16, textAlign: "center" } },
+            e("div", { style: { fontSize: "1.5rem", fontWeight: 700, lineHeight: 1.2 } }, stats.connectedStores, "/", planLimit),
+            e("div", { className: "stat-lbl" }, "Connected Stores", e("span", { className: "stat-lbl-icon", title: "The total number of Shopify stores currently linked to your SyncMesh organization network." }, "ⓘ"))
           ),
-          e("div", { className: "card stat-card" },
-            e("div", { className: "stat-val" }, stats.syncedSkuLinks),
-            e("div", { className: "stat-lbl" }, "Synced SKU Links", e("span", { className: "stat-lbl-icon", title: "Active SKU pool mappings" }, "ⓘ"))
+          e("div", { className: "card", style: { padding: 16, textAlign: "center" } },
+            e("div", { style: { fontSize: "1.5rem", fontWeight: 700, lineHeight: 1.2 } }, stats.syncedSkuLinks),
+            e("div", { className: "stat-lbl" }, "Synced SKU Links", e("span", { className: "stat-lbl-icon", title: "Total individual mapping records across all stores." }, "ⓘ"))
           ),
-          e("div", { className: "card stat-card" },
-            e("div", { className: "stat-val" }, stats.uniquePoolSkus),
-            e("div", { className: "stat-lbl" }, "Unique Pool SKUs", e("span", { className: "stat-lbl-icon", title: "Distinct Pool SKUs in use" }, "ⓘ"))
+          e("div", { className: "card", style: { padding: 16, textAlign: "center" } },
+            e("div", { style: { fontSize: "1.5rem", fontWeight: 700, lineHeight: 1.2 } }, stats.uniquePoolSkus),
+            e("div", { className: "stat-lbl" }, "Unique Pool SKUs", e("span", { className: "stat-lbl-icon", title: "The count of distinct Pool SKUs managed." }, "ⓘ"))
           )
+        ),
+        // Recent Alerts
+        recentAlerts.length > 0 && e("div", { className: "card", style: { marginBottom: 16 } },
+          e("div", { style: { padding: 16, display: "flex", justifyContent: "space-between", alignItems: "center" } },
+            e("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+              e("span", { style: { fontSize: "0.92rem", fontWeight: 600 } }, "Recent Alerts"),
+              e("span", { className: "badge " + (recentAlerts.some(function(a) { return a.severity === "critical" }) ? "badge-c" : "badge-w") }, recentAlerts.length)
+            ),
+            e("button", { className: "btn btn-plain", style: { fontSize: "0.85rem" }, onClick: function() { onNav("workbench") } }, "View all →")
+          ),
+          recentAlerts.map(function(ev) {
+            return e("div", { key: ev.id, style: { display: "flex", alignItems: "center", gap: 8, padding: "6px 16px" } },
+              e("span", { className: "badge " + (ev.severity === "critical" ? "badge-c" : ev.severity === "warning" ? "badge-w" : "badge-i") },
+                ev.type === "low_stock" ? "Low Stock" : ev.type === "stockout" ? "Stockout" : ev.type === "sync_failure" ? "Sync Failure" : ev.type),
+              e("span", { style: { fontSize: "0.85rem", flex: 1 } }, ev.message),
+              e("span", { style: { fontSize: "0.78rem", color: "var(--p-color-text-subdued, #6d7175)", whiteSpace: "nowrap" } }, ev.time)
+            );
+          })
         ),
         // Connected Stores
         e("div", { className: "card" },
-          e("div", { className: "card-header" }, "Connected Stores"),
+          e("div", { className: "card-header" },
+            e("span", null, "Connected Stores"),
+            e("div", { style: { display: "flex", gap: 8 } },
+              e("button", { className: "btn btn-sec btn-slim", onClick: function() {} }, "Disconnect Current Store"),
+              e("button", { className: "btn btn-pri btn-slim", onClick: onInvite }, "＋ Invite Store")
+            )
+          ),
           e("table", { className: "idx-table" },
             e("thead", null, e("tr", null,
               e("th", null, "Store"), e("th", null, "Synced SKUs"), e("th", null, "Status"), e("th", null, "Connected Since")
             )),
-            e("tbody", null, shops.map(s => e("tr", { key: s.id },
-              e("td", null, e("span", { style: { fontWeight: 500 } }, s.domain), s.isCurrent && e("span", { className: "badge badge-i badge-sm", style: { marginLeft: 8 } }, "Current")),
-              e("td", null, s.syncedSkus),
-              e("td", null, sb(s.status)),
-              e("td", null, s.joinedAt)
-            )))
+            e("tbody", null, shops.map(function(s) {
+              return e("tr", { key: s.id },
+                e("td", null, 
+                  e("span", { style: { fontWeight: 600 } }, s.domain.replace(".myshopify.com", "")),
+                  s.isCurrent && e("span", { className: "badge badge-i badge-sm", style: { marginLeft: 8 } }, "Current")
+                ),
+                e("td", null, s.syncedSkus > 0 ? s.syncedSkus + " SKU" + (s.syncedSkus !== 1 ? "s" : "") : "—"),
+                e("td", null, e("span", { className: "badge badge-s" }, "Connected")),
+                e("td", null, s.joinedAt)
+              );
+            }))
           )
         )
       ),
-      // Sidebar
-      e("div", { className: "layout-side" },
+      // Sidebar — only if not all done
+      !allSetupDone && e("div", { className: "layout-side" },
         e("div", { className: "card" },
           e("div", { className: "card-header" }, "Setup Guide"),
           e("div", { className: "card-body" },
-            e("ul", { className: "setup-list" },
-              e("li", { className: "setup-li" },
-                e("span", { className: "setup-check setup-done" }, "✓"),
-                e("div", null, "Start free trial", e("br"), e("small", { style: { color: "var(--p-color-text-subdued)", fontSize: "0.8rem" } }, "BETA — Pro tier active"))
+            e("div", { style: { display: "flex", flexDirection: "column", gap: 12 } },
+              e("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0" } },
+                e("div", { style: { display: "flex", alignItems: "center", gap: 10 } },
+                  e("span", { className: "setup-check setup-done" }, "✓"),
+                  e("span", { style: { fontWeight: 500 } }, "Start your 14-day free trial")
+                ),
+                e("span", { className: "badge badge-s" }, "Completed")
               ),
-              e("li", { className: "setup-li" },
-                e("span", { className: "setup-check setup-done" }, "✓"),
-                e("div", null, "Connect at least two stores", e("br"), e("small", { style: { color: "var(--p-color-text-subdued)", fontSize: "0.8rem" } }, "3 stores connected"))
+              e("div", { style: { height: 1, background: "var(--p-color-border-subdued, #e4e4e8)" } }),
+              e("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0" } },
+                e("div", { style: { display: "flex", alignItems: "center", gap: 10 } },
+                  e("span", { className: "setup-check setup-done" }, "✓"),
+                  e("span", { style: { fontWeight: 500 } }, "Connect at least two stores")
+                ),
+                shops.length > 1 ? e("span", { className: "badge badge-s" }, "Completed") : e("button", { className: "btn btn-pri btn-slim", onClick: onInvite }, "Invite Now")
               ),
-              e("li", { className: "setup-li" },
-                e("span", { className: "setup-check setup-done" }, "✓"),
-                e("div", null, "Map your first product", e("br"),
-                  e("button", { className: "btn btn-ter btn-slim", style: { marginTop: 4 }, onClick: () => onNav("workbench") }, "Go to Workbench →"))
+              e("div", { style: { height: 1, background: "var(--p-color-border-subdued, #e4e4e8)" } }),
+              e("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0" } },
+                e("div", { style: { display: "flex", alignItems: "center", gap: 10 } },
+                  e("span", { className: "setup-check " + (stats.syncedSkuLinks > 0 ? "setup-done" : "setup-pending") }, stats.syncedSkuLinks > 0 ? "✓" : "○"),
+                  e("span", { style: { fontWeight: 500 } }, "Map your first product")
+                ),
+                stats.syncedSkuLinks > 0
+                  ? e("span", { className: "badge badge-s" }, "Completed")
+                  : e("button", { className: "btn btn-pri btn-slim", onClick: function() { onNav("workbench") } }, "Configure")
               )
             )
           )
@@ -348,163 +433,367 @@ function Dashboard({ stats, shops, planLimit, onInvite, onNav }) {
     )
   );
 }
+
 
 // ── Standard Library ──
 function StandardLibrary({ products, onLink, onAutoLink }) {
   const [exp, setExp] = useState({});
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const toggle = (id) => setExp(p => ({ ...p, [id]: !p[id] }));
+  const [selectedLocId, setSelectedLocId] = useState("all");
+  const toggle = function(id) { setExp(function(p) { var n = {}; for (var k in p) n[k] = p[k]; n[id] = !p[id]; return n; }); };
 
-  const filtered = products.filter(p => {
-    if (search && !p.title.toLowerCase().includes(search.toLowerCase()) && !p.variants.some(v => v.sku && v.sku.toLowerCase().includes(search.toLowerCase()))) return false;
-    if (statusFilter !== "all" && !p.variants.some(v => v.status === statusFilter)) return false;
+  var locations = MOCK.locations || [];
+  var displayLocs = selectedLocId === "all" ? locations : locations.filter(function(l) { return l.id === selectedLocId; });
+  
+  var filtered = products.filter(function(p) {
+    if (search && !p.title.toLowerCase().includes(search.toLowerCase()) && !p.variants.some(function(v) { return v.sku && v.sku.toLowerCase().includes(search.toLowerCase()); })) return false;
+    if (statusFilter === "in_pool" && !p.variants.some(function(v) { return v.status === "linked"; })) return false;
+    if (statusFilter === "not_in_pool" && !p.variants.some(function(v) { return v.status === "local_only" || v.status === "missing_sku"; })) return false;
     return true;
   });
 
-  return e("div", { className: "card card-no-pad" },
-    e("div", { className: "filters-row" },
-      e("div", { className: "field" }, e("select", { value: "main", onChange: () => {} }, MOCK.locations.map(l => e("option", { key: l, value: l.toLowerCase().replace(/\s/g, "_") }, l)))),
-      e("div", { className: "field" }, e("select", { value: statusFilter, onChange: e => setStatusFilter(e.target.value) }, e("option", { value: "all" }, "All Products"), e("option", { value: "linked" }, "In Pool"), e("option", { value: "local_only" }, "Not In Pool"))),
-      e("div", { className: "field" }, e("input", { placeholder: "Search title or SKU...", value: search, onChange: e => setSearch(e.target.value) })),
-      e("span", { className: "filters-row-spacer" }, filtered.length, " products")
-    ),
-    e("table", { className: "idx-table" },
-      e("thead", null, e("tr", null, e("th", { style: { width: 30 } }), e("th", null, "Product & SKU"), e("th", null, "Stock"), e("th", null, "Network"), e("th", null, "Action"))),
-      e("tbody", null, filtered.map(p => [
-        e("tr", { key: p.id, className: "exp-row", onClick: () => toggle(p.id) },
-          e("td", null, e("span", { className: `exp-icon ${exp[p.id] ? 'open' : ''}` }, "▶")),
-          e("td", null, e("span", { style: { fontWeight: 600 } }, p.title), e("br"), e("span", { style: { fontSize: "0.78rem", color: "var(--p-color-text-subdued)" } }, p.variants.length, " variants")),
-          e("td", { style: { color: "var(--p-color-text-subdued)" } }, "—"),
-          e("td", { style: { color: "var(--p-color-text-subdued)" } }, "—"),
-          e("td")
+  function locBadge(v, locId) {
+    var inv = (v.inventoryLevels && v.inventoryLevels[locId]) || 0;
+    if (!v.isInventoryTracked) return e("span", { className: "badge badge-c", title: "Inventory tracking is disabled" }, "Not Tracked");
+    if (inv === 0 && v.status === "linked") return e("span", { className: "badge badge-c" }, "Not Stocked");
+    if (v.status === "linked") return e("span", { className: "badge badge-s" }, inv + " in stock");
+    return e("span", { className: "badge badge-at" }, inv + " in stock");
+  }
+
+  function networkCell(v, locId) {
+    if (v.status === "linked") {
+      return e("div", { style: { display: "flex", flexDirection: "column", gap: 2 } },
+        e("div", { style: { display: "flex", alignItems: "center", gap: 4 } },
+          e("span", { className: "dot dot-g" }),
+          e("span", { className: "badge badge-s" }, "Pool: " + (v.poolSku || v.sku))
         ),
-        exp[p.id] && p.variants.map(v => e("tr", { key: v.id, className: "sub-row" },
-          e("td"),
-          e("td", null,
-            e("div", { style: { fontWeight: 500 } }, v.title),
-            e("span", { style: { fontFamily: "monospace", fontSize: "0.78rem", color: "var(--p-color-text-subdued)" } }, v.sku || "—")
-          ),
-          e("td", { style: { fontWeight: v.stock <= 5 ? 600 : 400, color: v.stock === 0 ? "var(--p-color-text-critical)" : "inherit" } },
-            v.stock, v.stock === 0 && e("span", { style: { color: "var(--p-color-text-critical)" } }, " (Out)")),
-          e("td", null, sb(v.status)),
-          e("td", null, v.status === "linked"
-            ? e("button", { className: "btn btn-ter btn-slim", onClick: () => onLink(v) }, "✎ Edit Link")
-            : v.status === "missing_sku"
-              ? e("span", { style: { fontSize: "0.82rem", color: "var(--p-color-text-subdued)" } }, "No SKU")
-              : e("button", { className: "btn btn-sec btn-slim", onClick: () => onLink(v) }, "🔗 Link to Pool")
+        e("span", { style: { fontSize: "0.78rem", color: "var(--p-color-text-subdued, #6d7175)" } }, "🔗 3 Shops · 3 Locs")
+      );
+    } else if (v.isLinkable) {
+      return e("div", { style: { display: "flex", alignItems: "center", gap: 6 } },
+        e("span", { className: "dot dot-b" }),
+        e("span", { className: "badge badge-n" }, "Local Only")
+      );
+    } else {
+      return e("div", { style: { display: "flex", alignItems: "center", gap: 6 } },
+        e("span", { className: "dot dot-r" }),
+        e("span", { className: "badge badge-c" }, "Missing SKU")
+      );
+    }
+  }
+
+  function actionCell(v, locId, isLinked) {
+    var isDisabled = v.status === "ARCHIVED" || !v.isInventoryTracked;
+    if (isDisabled) {
+      return e("button", { className: "btn btn-ter btn-slim", disabled: true, title: "This product cannot be modified" }, "N/A");
+    }
+    if (isLinked) {
+      return e("button", { className: "btn btn-ter btn-slim", onClick: function() { onLink(v); } }, "Edit Link");
+    }
+    if (v.isLinkable) {
+      return e("button", { className: "btn btn-pri btn-slim", onClick: function() { onLink(v); } }, "Link to Pool");
+    }
+    return e("button", { className: "btn btn-plain btn-slim", style: { color: "var(--p-color-text-critical, #d72c0d)" } }, "Fix in Shopify");
+  }
+
+  var headerRows = [];
+  filtered.forEach(function(p) {
+    var isExpanded = exp[p.id];
+    var linkedCount = p.variants.filter(function(v) { return v.status === "linked"; }).length;
+    var productIdx = headerRows.length;
+    
+    // Product header row (colSpan=4)
+    headerRows.push(e("tr", { key: "ph-" + p.id },
+      e("td", { colSpan: 4, className: "prod-hdr-cell", style: { padding: "12px 16px" } },
+        e("div", { style: { display: "flex", alignItems: "center", gap: 12 } },
+          e("button", { 
+            className: "btn btn-plain", 
+            style: { padding: 0, fontsize: "0.8rem" },
+            onClick: function() { toggle(p.id); }
+          }, isExpanded ? "▾" : "▸"),
+          e("div", { style: { flex: 1 } },
+            e("div", { style: { display: "flex", alignItems: "center", gap: 6 } },
+              e("span", { style: { fontSize: "0.92rem", fontWeight: 600 } }, p.title),
+              p.status !== "ACTIVE" && e("span", { className: "badge " + (p.status === "DRAFT" ? "badge-at" : "badge-n") }, p.status === "DRAFT" ? "Draft" : "Archived")
+            ),
+            e("div", { style: { fontSize: "0.78rem", color: "var(--p-color-text-subdued, #6d7175)", marginTop: 2 } },
+              p.variants.length + " variant" + (p.variants.length !== 1 ? "s" : ""),
+              linkedCount > 0 ? " · " + linkedCount + " linked to pool" : ""
+            )
           )
-        ))
-      ]))
+        )
+      )
+    ));
+
+    // Variant rows (only when expanded)
+    if (isExpanded) {
+      p.variants.forEach(function(v) {
+        displayLocs.forEach(function(loc, locIdx) {
+          var inv = (v.inventoryLevels && v.inventoryLevels[loc.id]) || 0;
+          var isLinked = v.status === "linked";
+          var isFirstLoc = locIdx === 0;
+          
+          headerRows.push(e("tr", { key: v.id + "-" + loc.id },
+            // Col 1: Product & SKU
+            e("td", { style: { borderLeft: isFirstLoc ? "2px dashed var(--p-color-border-subdued, #e1e3e5)" : "none", paddingLeft: isFirstLoc ? "48px" : "12px" } },
+              isFirstLoc ? e("div", { style: { display: "flex", flexDirection: "column", gap: 2 } },
+                e("span", { style: { fontWeight: 600, fontSize: "0.85rem" } }, v.title || "Default"),
+                v.status !== "ACTIVE" && e("span", { className: "badge " + (v.status === "DRAFT" ? "badge-at" : "badge-n") + " badge-sm" }, v.status === "DRAFT" ? "Draft" : "Archived"),
+                e("span", { style: { fontSize: "0.78rem", color: "var(--p-color-text-subdued, #6d7175)" } }, v.sku || "No SKU")
+              ) : null
+            ),
+            // Col 2: Stock
+            e("td", null, 
+              e("div", null, 
+                locBadge(v, loc.id),
+                displayLocs.length > 1 && e("div", { style: { fontSize: "0.75rem", color: "var(--p-color-text-subdued, #6d7175)", marginTop: 2 } }, loc.name)
+              )
+            ),
+            // Col 3: Network
+            e("td", null, networkCell(v, loc.id)),
+            // Col 4: Action
+            e("td", null, actionCell(v, loc.id, isLinked))
+          ));
+        });
+      });
+    }
+  });
+
+  return e("div", { className: "card card-no-pad" },
+    // Filters bar
+    e("div", { style: { padding: "12px 16px", display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", borderBottom: "1px solid var(--p-color-border-subdued, #e4e4e8)" } },
+      // Location filter
+      e("div", { className: "field", style: { position: "relative" } },
+        e("select", { value: selectedLocId, onChange: function(e) { setSelectedLocId(e.target.value); }, style: { border: "none", background: "transparent", outline: "none", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" } },
+          e("option", { value: "all" }, "All Locations"),
+          locations.map(function(l) { return e("option", { key: l.id, value: l.id }, l.name); })
+        )
+      ),
+      // Status filter
+      e("div", { className: "field" },
+        e("select", { value: statusFilter, onChange: function(e) { setStatusFilter(e.target.value); }, style: { border: "none", background: "transparent", outline: "none", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" } },
+          e("option", { value: "all" }, "All Products"),
+          e("option", { value: "in_pool" }, "In Pool"),
+          e("option", { value: "not_in_pool" }, "Not In Pool")
+        )
+      ),
+      // Search
+      e("div", { className: "field", style: { flex: 1, maxWidth: 300 } },
+        e("span", { style: { fontSize: "0.85rem", marginRight: 4 } }, "🔍"),
+        e("input", { placeholder: "Search title or SKU...", value: search, onChange: function(e) { setSearch(e.target.value); }, style: { border: "none", background: "transparent", outline: "none", fontSize: "0.85rem", width: "100%", color: "var(--p-color-text, #202223)", fontFamily: "inherit" } })
+      ),
+      e("span", { style: { marginLeft: "auto", fontSize: "0.82rem", color: "var(--p-color-text-subdued, #6d7175)" } }, filtered.length, " products")
+    ),
+    // Table
+    e("table", { className: "idx-table" },
+      e("thead", null, e("tr", null,
+        e("th", null, "Product & SKU"), e("th", null, "Stock"), e("th", null, "Network"), e("th", null, "Action")
+      )),
+      e("tbody", null, headerRows)
     )
   );
 }
+
 
 // ── Sync Activity ──
 function SyncActivity({ events, onForce }) {
   const [expId, setExpId] = useState(null);
-  return e("div", { className: "card card-no-pad" },
+  const locations = MOCK.locations || [];
+  
+  function sourceBadge(ev) {
+    if (ev.status === "failed") return e("span", { className: "badge badge-c" }, "Sync Failed");
+    if (ev.status === "force_sync") return e("span", { className: "badge badge-w" }, "Force Sync");
+    if (ev.status === "inventory_update") return e("span", { className: "badge badge-i" }, "Inventory Update");
+    if (ev.status === "conflict_resolve") return e("span", { className: "badge badge-at" }, "Conflict Resolve");
+    return e("span", { className: "badge badge-s" }, "Auto-Sync");
+  }
+  
+  var failures = events.filter(function(ev) { return ev.status === "failed"; });
+  
+  return e("div", null,
+    e("div", { style: { padding: "16px 16px 0" } },
+      e("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 } },
+        e("span", { style: { fontSize: "0.92rem", fontWeight: 600 } }, "Sync Activity"),
+        e("div", { className: "tooltip-wrap" },
+          e("button", { className: "btn btn-plain btn-slim", style: { fontSize: "0.78rem" } }, "How to read statuses?"),
+          e("div", { className: "tooltip-tip", style: { whiteSpace: "normal", width: 220, textAlign: "left", padding: 10 } },
+            e("b", null, "Auto-Sync:"), " Automatic update via network", e("br"),
+            e("b", null, "Inventory Update:"), " Manual or system change in Shopify", e("br"),
+            e("b", null, "Force Sync:"), " Manually triggered retry", e("br"),
+            e("b", null, "Conflict Resolve:"), " Manual resolution of mismatch", e("br"),
+            e("b", null, "Sync Failed:"), " Network or API error occurred"
+          )
+        )
+      ),
+      e("p", { style: { fontSize: "0.78rem", color: "var(--p-color-text-subdued, #6d7175)" } },
+        "Latest inventory sync status per SKU. Click an event count to view full history."
+      )
+    ),
+    // Failure banner
+    failures.length > 0 && e("div", { className: "banner banner-critical", style: { margin: "12px 16px 0" } },
+      e("span", { className: "banner-icon" }, "⚠️"),
+      e("div", { className: "banner-body" },
+        failures.length + " SKU" + (failures.length > 1 ? "s" : "") + " failed to sync: ",
+        failures.map(function(f, i) {
+          return e("span", { key: f.poolSku },
+            e("button", { className: "btn btn-plain btn-slim", style: { fontSize: "0.82rem" }, onClick: function() { setExpId(f.id); } }, f.poolSku),
+            i < failures.length - 1 ? ", " : ""
+          );
+        })
+      )
+    ),
     e("table", { className: "idx-table" },
       e("thead", null, e("tr", null,
-        e("th", null, "SKU"), e("th", null, "Location"), e("th", null, "Latest Status"), e("th", null, "Qty"), e("th", null, "Last Sync"), e("th", null, "History"), e("th", null, "Action")
+        e("th", null, "SKU"), e("th", null, "Location"), e("th", null, "Latest Status"), e("th", null, "Qty"), e("th", null, "Last Sync"), e("th", null, "History")
       )),
-      e("tbody", null, events.map(ev => [
-        e("tr", { key: ev.id, className: ev.status === "failed" ? "row-critical" : "" },
-          e("td", { style: { fontFamily: "monospace", fontSize: "0.82rem", fontWeight: 500 } }, ev.poolSku),
-          e("td", { style: { fontSize: "0.82rem" } }, "Main Warehouse"),
-          e("td", null, sb(ev.status)),
-          e("td", null, ev.fromStock, " → ", e("span", { style: { fontWeight: 500 } }, ev.toStock)),
-          e("td", { style: { fontSize: "0.82rem", color: "var(--p-color-text-subdued)" } }, ev.time),
-          e("td", null, e("button", { className: "btn btn-plain", onClick: () => setExpId(expId === ev.id ? null : ev.id) }, ev.id, " events")),
-          e("td", null, ev.status === "failed" && e("button", { className: "btn btn-crit btn-slim", onClick: () => onForce(ev) }, "Force Sync"))
-        ),
-        expId === ev.id && e("tr", { key: ev.id + "-d" },
-          e("td", { colSpan: 7, style: { background: "var(--p-color-bg-subdued)", padding: 16 } },
-            e("div", { style: { fontSize: "0.84rem" } },
-              e("strong", null, "Sync Detail — ", ev.poolSku),
-              e("div", { style: { marginTop: 8, color: "var(--p-color-text-subdued)" } },
-                "Action: ", ev.action.replace(/_/g, " "), e("br"),
-                "From: ", ev.fromStore, " (", ev.fromStock, " units)", e("br"),
-                "To: ", ev.toStore, " (", ev.toStock, " units)", e("br"),
-                ev.error && e("span", { style: { color: "var(--p-color-text-critical)" } }, "Error: ", ev.error, e("br")),
-                "Timestamp: ", ev.time
+      e("tbody", null, events.map(function(ev) {
+        return [
+          e("tr", { key: ev.id, className: ev.status === "failed" ? "row-critical" : "" },
+            e("td", null, e("span", { style: { fontFamily: "monospace", fontSize: "0.82rem", fontWeight: 600 } }, ev.poolSku)),
+            e("td", null, e("span", { style: { fontSize: "0.82rem", color: "var(--p-color-text-subdued, #6d7175)" } }, (locations.find(function(l) { return l.id === ev.locationId; }) || {}).name || "Main Warehouse")),
+            e("td", null, sourceBadge(ev)),
+            e("td", null, e("span", { style: { fontWeight: 500 } }, "→ " + ev.toStock)),
+            e("td", null, e("span", { style: { fontSize: "0.82rem", color: "var(--p-color-text-subdued, #6d7175)" } }, ev.time)),
+            e("td", null, 
+              e("button", { className: "btn btn-plain", style: { fontSize: "0.85rem" }, onClick: function() { setExpId(expId === ev.id ? null : ev.id); } }, "1 event"),
+              ev.status === "failed" && e("button", { className: "btn btn-crit btn-slim", style: { marginLeft: 8 }, onClick: function() { onForce(ev); } }, "Force Sync")
+            )
+          ),
+          expId === ev.id && e("tr", { key: ev.id + "-d" },
+            e("td", { colSpan: 6, style: { background: "var(--p-color-bg-subdued, #fafafc)", padding: 16 } },
+              e("div", { style: { fontSize: "0.84rem" } },
+                e("strong", null, "Sync Detail — ", ev.poolSku),
+                e("div", { style: { marginTop: 8, color: "var(--p-color-text-subdued, #6d7175)" } },
+                  "Action: ", ev.action.replace(/_/g, " "), e("br"),
+                  "From: ", ev.fromStore, " (", ev.fromStock, " units)", e("br"),
+                  "To: ", ev.toStore, " (", ev.toStock, " units)", e("br"),
+                  ev.error && e("span", { style: { color: "var(--p-color-text-critical, #d72c0d)" } }, "Error: ", ev.error, e("br")),
+                  "Timestamp: ", ev.time
+                )
               )
             )
           )
-        )
-      ]))
+        ];
+      }))
     )
   );
 }
 
-// ── Alerts Tab ──
 function AlertsTab({ rules, events, onCreate }) {
-  const TYPE_LABEL = { low_stock: "📉 Low Stock", stockout: "🚫 Stockout", sync_failure: "⚠️ Sync Failure" };
-  return e("div", null,
-    e("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginBottom: "20px" } },
-      ["low_stock", "stockout", "sync_failure"].map(t => e("div", { key: t, className: "card", style: { padding: 20 } },
-        e("h4", { style: { fontSize: "0.95rem", marginBottom: 8 } }, TYPE_LABEL[t]),
-        e("p", { style: { fontSize: "0.82rem", color: "var(--p-color-text-subdued)", marginBottom: 12 } }, t === "low_stock" ? "Alert when stock drops below threshold" : t === "stockout" ? "Alert when product reaches zero" : "Alert when cross-store sync fails"),
-        e("button", { className: "btn btn-sec btn-slim", onClick: () => onCreate(t) }, "+ Add Rule")
-      ))
-    ),
-    e("div", { className: "card", style: { marginBottom: 16 } },
-      e("div", { className: "card-header" }, "Alert Rules (", rules.length, ")"),
-      e("table", { className: "idx-table" },
-        e("thead", null, e("tr", null, e("th", null, "Type"), e("th", null, "Scope"), e("th", null, "Threshold"), e("th", null, "Channels"), e("th", null, "Cooldown"), e("th", null, "Status"))),
-        e("tbody", null, rules.map(r => e("tr", { key: r.id },
-          e("td", null, TYPE_LABEL[r.type]),
-          e("td", null, r.scopeName),
-          e("td", null, r.threshold || "—"),
-          e("td", null, r.channels.map(c => c.replace(/_/g, " ")).join(", ")),
-          e("td", null, r.cooldownMinutes, " min"),
-          e("td", null, e("span", { className: `badge ${r.enabled ? 'badge-s' : 'badge-n'}` }, r.enabled ? "Active" : "Paused"))
-        )))
-      )
-    ),
+  var TYPE_LABEL = { low_stock: "Low Stock", stockout: "Stockout", sync_failure: "Sync Failure" };
+  var ALERT_TYPES = ["low_stock", "stockout", "sync_failure"];
+  
+  function rulesByType(type) { return rules.filter(function(r) { return r.type === type; }); }
+  function alertBadge(type) {
+    if (type === "low_stock") return e("span", { className: "badge badge-w" }, "global / per-SKU");
+    if (type === "stockout") return e("span", { className: "badge badge-c" }, "global / per-SKU");
+    return e("span", { className: "badge badge-i" }, "global");
+  }
+
+  return e("div", { style: { display: "flex", flexDirection: "column", gap: 16 } },
+    // One card per alert type
+    ALERT_TYPES.map(function(alertType) {
+      var typeRules = rulesByType(alertType);
+      var desc = alertType === "low_stock" ? "Alerts when stock drops to or below the configured threshold. Global by default; optionally restrict to specific SKUs."
+        : alertType === "stockout" ? "Alerts when a product reaches zero inventory. Global by default; optionally restrict to specific SKUs."
+        : "Alerts when inventory synchronization fails between shops. Always applies globally.";
+      
+      return e("div", { key: alertType, className: "card" },
+        e("div", { style: { padding: 16 } },
+          // Card header
+          e("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 } },
+            e("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+              e("span", { style: { fontSize: "0.92rem", fontWeight: 600 } }, TYPE_LABEL[alertType]),
+              alertBadge(alertType)
+            ),
+            e("button", { className: "btn btn-pri btn-slim", onClick: function() { onCreate(alertType); } }, "+ Add Rule")
+          ),
+          e("div", { className: "card-desc" }, desc),
+          // Rules table
+          typeRules.length === 0
+            ? e("div", { style: { padding: "24px 0", textAlign: "center", color: "var(--p-color-text-subdued, #6d7175)" } },
+                "No " + TYPE_LABEL[alertType] + " rules configured.")
+            : e("table", { className: "idx-table" },
+                e("thead", null, e("tr", null,
+                  e("th", null, "SKU"), e("th", null, "Threshold"), e("th", null, "Channels"), e("th", null, "Cooldown"), e("th", null, "Status")
+                )),
+                e("tbody", null, typeRules.map(function(r) {
+                  return e("tr", { key: r.id },
+                    e("td", null, e("span", { style: { fontSize: "0.85rem" } }, r.scopeName || "All SKUs")),
+                    e("td", null, e("span", { style: { fontSize: "0.85rem" } }, r.threshold != null ? r.threshold : "—")),
+                    e("td", null, r.channels.map(function(ch) { return e("span", { key: ch, className: "badge " + (ch === "email" ? "badge-i" : ch === "webhook" ? "badge-at" : "badge-s"), style: { marginRight: 4 } }, ch); })),
+                    e("td", null, e("span", { style: { fontSize: "0.85rem" } }, r.cooldownMinutes + "m")),
+                    e("td", null, e("span", { className: "badge " + (r.enabled ? "badge-s" : "badge-n") }, r.enabled ? "Active" : "Paused"))
+                  );
+                }))
+              )
+        )
+      );
+    }),
+    // Recent Alert Events
     e("div", { className: "card" },
       e("div", { className: "card-header" }, "Recent Alert Events"),
-      e("table", { className: "idx-table" },
-        e("thead", null, e("tr", null, e("th", null, "Type"), e("th", null, "Severity"), e("th", null, "SKU"), e("th", null, "Qty"), e("th", null, "Message"), e("th", null, "Channels"), e("th", null, "Time"))),
-        e("tbody", null, events.map(ev => e("tr", { key: ev.id },
-          e("td", null, TYPE_LABEL[ev.type] || ev.type),
-          e("td", null, e("span", { className: `badge ${ev.severity === "critical" ? "badge-c" : "badge-w"}` }, ev.severity)),
-          e("td", { style: { fontFamily: "monospace", fontSize: "0.8rem" } }, ev.sku),
-          e("td", { style: { fontWeight: ev.quantity === 0 ? 600 : 400, color: ev.quantity === 0 ? "var(--p-color-text-critical)" : "inherit" } }, ev.quantity),
-          e("td", { style: { color: "var(--p-color-text-subdued)", fontSize: "0.82rem" } }, ev.message),
-          e("td", { style: { color: "var(--p-color-text-subdued)", fontSize: "0.8rem" } }, "in-app"),
-          e("td", { style: { fontSize: "0.82rem", color: "var(--p-color-text-subdued)", whiteSpace: "nowrap" } }, ev.time)
-        )))
-      )
+      events.length === 0
+        ? e("div", { style: { padding: "24px 0", textAlign: "center", color: "var(--p-color-text-subdued, #6d7175)" } }, "No alert events yet.")
+        : e("table", { className: "idx-table" },
+            e("thead", null, e("tr", null,
+              e("th", null, "Type"), e("th", null, "Severity"), e("th", null, "SKU"), e("th", null, "Qty"), e("th", null, "Message"), e("th", null, "Channels"), e("th", null, "Time")
+            )),
+            e("tbody", null, events.map(function(ev) {
+              return e("tr", { key: ev.id },
+                e("td", null, e("span", { className: "badge badge-n" }, TYPE_LABEL[ev.type] || ev.type)),
+                e("td", null, e("span", { className: "badge " + (ev.severity === "critical" ? "badge-c" : "badge-w") }, ev.severity)),
+                e("td", null, e("span", { style: { fontFamily: "monospace", fontSize: "0.8rem" } }, ev.sku)),
+                e("td", null, e("span", { style: { fontSize: "0.85rem" } }, ev.quantity)),
+                e("td", null, e("span", { style: { fontSize: "0.82rem", color: "var(--p-color-text-subdued, #6d7175)" } }, ev.message)),
+                e("td", null, (ev.channels || ["in_app"]).map(function(ch) { return e("span", { key: ch, className: "badge badge-s", style: { marginRight: 4 } }, ch); })),
+                e("td", null, e("span", { style: { fontSize: "0.82rem", color: "var(--p-color-text-subdued, #6d7175)", whiteSpace: "nowrap" } }, ev.time))
+              );
+            }))
+          )
     )
   );
 }
 
 // ── Modals ──
 function LinkPoolModal({ variant, onClose, onOk }) {
-  const [sku, setSku] = useState(variant?.poolSku || "");
+  const [sku, setSku] = useState(variant?.poolSku || variant?.sku || "");
   const [loading, setLoading] = useState(false);
-  const submit = () => { if (!sku.trim()) return; setLoading(true); setTimeout(() => { setLoading(false); onOk(variant?.poolSku ? "SKU link updated!" : "SKU linked to pool!"); }, 500); };
+  const locations = MOCK.locations || [];
+  const [selectedLoc, setSelectedLoc] = useState(locations[0]?.id || "");
+  const submit = function() { if (!sku.trim()) return; setLoading(true); setTimeout(function() { setLoading(false); onOk(variant?.poolSku ? "SKU link updated!" : "SKU linked to pool!"); }, 500); };
   return e("div", { className: "modal-backdrop", onClick: onClose },
-    e("div", { className: "modal", onClick: e => e.stopPropagation() },
-      e("div", { className: "modal-hdr" }, variant?.poolSku ? "Edit Pool Link" : "Link Variant to Pool", e("button", { className: "modal-close", onClick: onClose }, "✕")),
+    e("div", { className: "modal", onClick: function(e) { e.stopPropagation(); } },
+      e("div", { className: "modal-hdr" }, "Inventory Pool: " + (variant?.title || "Product") + " (" + (variant?.sku || "") + ")", e("button", { className: "modal-close", onClick: onClose }, "✕")),
       e("div", { className: "modal-body" },
-        variant && e("div", { style: { marginBottom: 12, fontSize: "0.85rem", color: "var(--p-color-text-subdued)" } },
-          e("strong", null, variant.title), " — SKU: ", e("code", null, variant.sku), " — Stock: ", variant.stock),
+        // Location selector
+        e("div", { className: "form-grp" },
+          e("label", { className: "form-lbl" }, "Location"),
+          e("select", { className: "form-sel", value: selectedLoc, onChange: function(e) { setSelectedLoc(e.target.value); } },
+            locations.map(function(l) { return e("option", { key: l.id, value: l.id }, l.name); })
+          )
+        ),
+        e("div", { style: { height: 1, background: "var(--p-color-border-subdued, #e4e4e8)", margin: "12px 0" } }),
+        e("p", { style: { fontSize: "0.85rem", color: "var(--p-color-text-subdued, #6d7175)", marginBottom: 12 } },
+          "Enter the ", e("b", null, "Pool SKU"), " to link this variant. All shops in your organization that share this Pool SKU will keep inventory in sync automatically."
+        ),
         e("div", { className: "form-grp" },
           e("label", { className: "form-lbl" }, "Pool SKU"),
-          e("input", { className: "form-inp", value: sku, onChange: e => setSku(e.target.value), placeholder: "e.g. GLOBAL-TSH-001", autoFocus: true }),
+          e("input", { className: "form-inp", value: sku, onChange: function(e) { setSku(e.target.value); }, placeholder: "e.g. GLOBAL-TSH-001", autoFocus: true }),
           e("div", { className: "form-hint" }, "All stores using the same Pool SKU will automatically stay in sync.")
         ),
-        variant?.poolSku && e("button", { className: "btn btn-crit btn-slim", onClick: () => setSku(""), style: { marginBottom: 8 } }, "Unlink from Pool")
+        variant?.poolSku && e("button", { className: "btn btn-crit btn-slim", onClick: function() { setSku(""); }, style: { marginBottom: 8 } }, "Unlink from Pool")
       ),
       e("div", { className: "modal-ftr" },
+        variant?.poolSku && e("button", { key: "unlink", className: "btn btn-crit", onClick: function() { onClose(); onOk("Unlinked from pool"); } }, "Unlink from Pool"),
         e("button", { className: "btn btn-sec", onClick: onClose }, "Cancel"),
         e("button", { className: "btn btn-pri", onClick: submit, disabled: loading || !sku.trim() }, loading ? "Linking..." : variant?.poolSku ? "Update Link" : "Link to Pool")
       )
     )
   );
 }
+
 
 function AutoLinkModal({ onClose, onOk }) {
   const [stage, setStage] = useState("init");
@@ -517,9 +806,15 @@ function AutoLinkModal({ onClose, onOk }) {
         stage === "init" && e("div", null,
           e("div", { className: "form-grp" },
             e("label", { className: "form-lbl" }, "Warehouse Location"),
-            e("select", { className: "form-sel", defaultValue: "main" }, MOCK.locations.map(l => e("option", { key: l }, l)))
+            e("select", { className: "form-sel", defaultValue: (MOCK.locations[0] || {}).id }, (MOCK.locations || []).map(function(l) { return e("option", { key: l.id, value: l.id }, l.name); }))
           ),
-          e("p", { style: { fontSize: "0.84rem", color: "var(--p-color-text-subdued)" } }, "The system will scan all products, match by SKU, and create links automatically. Already-linked variants will be skipped.")
+          e("div", { className: "banner banner-info", style: { marginBottom: 12 } },
+            e("div", { className: "banner-body", style: { fontSize: "0.82rem" } },
+              e("b", null, "Automatic Link:"), " Matches variants with valid SKUs that already exist in your pool.", e("br"),
+              e("b", null, "Skipped:"), " Variants without SKUs, already linked, or not stocked at this location.", e("br"),
+              e("b", null, "Conflicts:"), " Inventory mismatches will be held for manual review."
+            )
+          ),
         ),
         stage === "run" && e("div", null,
           e("p", { style: { textAlign: "center", fontWeight: 500 } }, "Scanning products..."),
@@ -601,8 +896,8 @@ function InviteModal({ onClose }) {
       e("div", { className: "modal-body" },
         e("div", { className: "modal-sec" },
           e("p", { style: { fontSize: "0.88rem", color: "var(--p-color-text-subdued)", marginBottom: 12 } }, "Share this pairing code with the administrator of another store."),
-          e("div", { className: "pair-code" }, code),
-          e("p", { style: { textAlign: "center", fontSize: "0.82rem", color: "var(--p-color-text-critical)" } }, "Expires in 14:58")
+          e("div", { style: { fontSize: "2rem", fontWeight: 700, letterSpacing: "12px", textAlign: "center", padding: 24, background: "var(--p-color-bg-subdued, #f6f6f7)", borderRadius: 8, margin: "12px 0", fontFamily: "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace" } }, code),
+          e("p", { style: { textAlign: "center", fontSize: "0.82rem", color: "var(--p-color-text-critical, #d72c0d)" } }, "Expires in 14:58")
         ),
         e("div", { className: "modal-sec" },
           e("p", { style: { fontSize: "0.84rem", fontWeight: 500, marginBottom: 6 } }, "How it works:"),
@@ -627,36 +922,37 @@ function Onboarding({ onDone }) {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
 
-  if (showJoin) return e("div", { className: "welcome-wrap" },
+  if (showJoin) return e("div", { className: "onboard-center" },
     e("div", { className: "card" },
       e("div", { className: "card-header" }, "Join Existing Organization"),
       e("div", { className: "card-body" },
         e("div", { className: "form-grp" },
           e("label", { className: "form-lbl" }, "Pairing Code"),
-          e("input", { className: "form-inp", value: code, onChange: e => setCode(e.target.value.toUpperCase()), placeholder: "Enter 6-character code", maxLength: 6, autoFocus: true, style: { fontFamily: "monospace", fontSize: "1.2rem", letterSpacing: "0.3em", textAlign: "center" } })
+          e("input", { className: "form-inp", value: code, onChange: function(e) { setCode(e.target.value.toUpperCase()); }, placeholder: "Enter 6-character code", maxLength: 6, autoFocus: true, style: { fontFamily: "monospace", fontSize: "1.2rem", letterSpacing: "0.3em", textAlign: "center" } })
         ),
-        e("button", { className: "btn btn-pri", style: { width: "100%", marginBottom: 8 }, onClick: () => { if (code.length < 6) return; setLoading(true); setTimeout(() => { setLoading(false); onDone("Joined organization! Welcome to SyncMesh."); }, 700); }, disabled: loading || code.length < 6 }, loading ? "Verifying..." : "Verify & Join"),
-        e("button", { className: "btn btn-plain", style: { width: "100%" }, onClick: () => setShowJoin(false) }, "← Back")
+        e("button", { className: "btn btn-pri", style: { width: "100%", marginBottom: 8 }, onClick: function() { if (code.length < 6) return; setLoading(true); setTimeout(function() { setLoading(false); onDone("Joined organization! Welcome to SyncMesh."); }, 700); }, disabled: loading || code.length < 6 }, loading ? "Verifying..." : "Verify & Join"),
+        e("button", { className: "btn btn-plain", style: { width: "100%" }, onClick: function() { setShowJoin(false); } }, "← Back")
       )
     )
   );
 
-  return e("div", { className: "welcome-wrap" },
-    e("div", { style: { textAlign: "center", marginBottom: 32 } },
-      e("h1", { style: { fontSize: "1.5rem", fontWeight: 700, marginBottom: 6 } }, "Welcome to SyncMesh"),
-      e("p", { style: { color: "var(--p-color-text-subdued)" } }, "Set up your inventory sync network in minutes")
-    ),
-    e("div", { className: "welcome-grid" },
-      e("div", { className: "welcome-card", onClick: () => { setLoading(true); setTimeout(() => { setLoading(false); onDone("Organization created! Welcome to SyncMesh."); }, 700); } },
-        e("div", { className: "welcome-icon" }, "🏗️"),
-        e("h3", { style: { fontSize: "1rem", marginBottom: 6 } }, "Create a New Organization"),
-        e("p", { style: { fontSize: "0.84rem", color: "var(--p-color-text-subdued)" } }, "Create a new inventory network. You'll be the admin."),
-        loading && e("p", { style: { marginTop: 10, color: "var(--p-color-text-interactive)" } }, "Creating...")
-      ),
-      e("div", { className: "welcome-card", onClick: () => setShowJoin(true) },
-        e("div", { className: "welcome-icon" }, "🔗"),
-        e("h3", { style: { fontSize: "1rem", marginBottom: 6 } }, "Join Existing Organization"),
-        e("p", { style: { fontSize: "0.84rem", color: "var(--p-color-text-subdued)" } }, "Connect to an existing network using a pairing code.")
+  return e("div", { className: "onboard-center" },
+    e("div", { className: "card", style: { padding: 32 } },
+      e("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 20 } },
+        e("div", { className: "onboard-img" },
+          e("img", { alt: "", src: "https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png" })
+        ),
+        e("div", { style: { textAlign: "center" } },
+          e("h1", { style: { fontSize: "1.25rem", fontWeight: 600, marginBottom: 8 } }, "Welcome to SyncMesh Inventory Network"),
+          e("p", { style: { fontSize: "0.88rem", color: "var(--p-color-text-subdued, #6d7175)" } }, "Seamlessly connect and synchronize inventory levels across your entire organization.")
+        ),
+        e("div", { style: { height: 1, width: "100%", background: "var(--p-color-border-subdued, #e4e4e8)" } }),
+        e("p", { style: { fontSize: "0.88rem" } }, "Choose how you want to start:"),
+        e("div", { style: { display: "flex", gap: 12, justifyContent: "center" } },
+          e("button", { className: "btn btn-pri btn-large", onClick: function() { setLoading(true); setTimeout(function() { setLoading(false); onDone("Organization created! Welcome to SyncMesh."); }, 700); }, disabled: loading }, "＋ Create a New Organization"),
+          e("button", { className: "btn btn-sec btn-large", onClick: function() { setShowJoin(true); }, disabled: loading }, "→ Join Existing Organization")
+        ),
+        e("p", { style: { fontSize: "0.78rem", color: "var(--p-color-text-subdued, #6d7175)", textAlign: "center" } }, "As the Administrator, you'll be able to invite other stores to join your network later.")
       )
     )
   );
@@ -708,7 +1004,7 @@ function App() {
         showOnboarding && e(Onboarding, { onDone: onOnboard }),
         view === "dashboard" && e(Dashboard, {
           stats: MOCK.stats, shops: MOCK.shops, planLimit: MOCK.stats.planLimit,
-          onInvite: () => setModal({ t: "invite" }), onNav: setView
+          onInvite: () => setModal({ t: "invite" }), onNav: setView, alertEvents: MOCK.alertEvents
         }),
         view === "workbench" && e(Workbench, {
           products: MOCK.products, syncEvents: MOCK.syncEvents, alertRules: MOCK.alertRules, alertEvents: MOCK.alertEvents,
